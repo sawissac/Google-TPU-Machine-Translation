@@ -1,2231 +1,3181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google TPU — Neural Machine Translation · IT130</title>
-</head>
-
-<body>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    :root {
-      --bg: #060d1a;
-      --s1: #0d1625;
-      --s2: #111e32;
-      --s3: #16284a;
-      --cyan: #00e5ff;
-      --green: #39ff8a;
-      --amber: #ffb400;
-      --pink: #ff4daa;
-      --purple: #a78bfa;
-      --text: #dde7f5;
-      --muted: #5a7a9e;
-      --border: #1a3050;
-      --heading: #ffffff;
-      --body-text: #8fa8c0;
-      --code-bg: #0a1929;
-      --font: 'Space Grotesk', sans-serif;
-      --mono: 'JetBrains Mono', monospace;
-    }
-
-    [data-theme="light"] {
-      --bg: #f8fafc;
-      --s1: #f1f5f9;
-      --s2: #edf2f7;
-      --s3: #dde7f5;
-      --cyan: #0284c7;
-      --green: #15803d;
-      --amber: #b45309;
-      --pink: #be185d;
-      --purple: #6d28d9;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #cbd5e1;
-      --heading: #0f172a;
-      --body-text: #475569;
-      --code-bg: rgba(2, 132, 199, .08);
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      height: 100dvh;
-      overflow: hidden;
-      transition: background .3s, color .3s
-    }
-
-    .pres {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh
-    }
-
-    /* TOPBAR */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 28px;
-      background: var(--s1);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      gap: 12px
-    }
-
-    .tb-logo {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--cyan);
-      letter-spacing: 2px;
-      white-space: nowrap
-    }
-
-    .tb-title {
-      font-size: 13px;
-      color: var(--muted);
-      text-align: center;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap
-    }
-
-    .tb-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0
-    }
-
-    .tb-ctr {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      white-space: nowrap
-    }
-
-    .icon-btn {
-      font-size: 13px;
-      padding: 4px 8px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: .2s;
-      white-space: nowrap;
-      line-height: 1
-    }
-
-    .icon-btn:hover {
-      border-color: var(--cyan);
-      color: var(--cyan)
-    }
-
-    .theme-btn {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1px;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: .2s;
-      white-space: nowrap;
-      text-transform: uppercase
-    }
-
-    .theme-btn:hover {
-      border-color: var(--cyan);
-      color: var(--cyan)
-    }
-
-    /* PROGRESS */
-    .prog {
-      height: 3px;
-      background: var(--border);
-      flex-shrink: 0
-    }
-
-    .prog-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--cyan), var(--green));
-      transition: width .4s ease
-    }
-
-    /* SLIDES */
-    .area {
-      flex: 1;
-      position: relative;
-      overflow: hidden
-    }
-
-    .slide {
-      position: absolute;
-      inset: 0;
-      padding: 24px 32px;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      transform: translateX(50px);
-      transition: all .4s cubic-bezier(.4, 0, .2, 1);
-      pointer-events: none;
-      overflow-y: auto
-    }
-
-    .slide.active {
-      opacity: 1;
-      transform: none;
-      pointer-events: auto
-    }
-
-    .slide.out {
-      opacity: 0;
-      transform: translateX(-50px)
-    }
-
-    .stag {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--cyan);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      opacity: .8
-    }
-
-    .slide h1 {
-      font-size: clamp(24px, 2.8vw, 38px);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 8px;
-      color: var(--heading)
-    }
-
-    .slide h2 {
-      font-size: clamp(20px, 2.2vw, 30px);
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: var(--heading)
-    }
-
-    .slide p {
-      font-size: clamp(13px, 1.1vw, 15px);
-      color: var(--body-text);
-      line-height: 1.75;
-      margin-bottom: 8px
-    }
-
-    .hl {
-      color: var(--cyan)
-    }
-
-    .hl2 {
-      color: var(--green)
-    }
-
-    .hl3 {
-      color: var(--amber)
-    }
-
-    .hlp {
-      color: var(--purple)
-    }
-
-    /* IMG PANEL */
-    .img-panel {
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--s2);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative
-    }
-
-    .img-panel img {
-      width: 100%;
-      flex: 1;
-      object-fit: cover;
-      display: block;
-      min-height: 0
-    }
-
-    .img-panel img.loaded {
-      opacity: 1
-    }
-
-    .img-footer {
-      padding: 7px 12px;
-      background: rgba(6, 13, 26, .88);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0
-    }
-
-    [data-theme="light"] .img-footer {
-      background: rgba(241, 245, 249, .95);
-      border-top: 1px solid var(--border)
-    }
-
-    .img-caption-text {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--muted);
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap
-    }
-
-    .img-link {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--cyan);
-      text-decoration: none;
-      flex-shrink: 0;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 2px 6px;
-      transition: .15s
-    }
-
-    .img-link:hover {
-      border-color: var(--cyan)
-    }
-
-    .img-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0, 229, 255, .15);
-      border: 1px solid var(--cyan);
-      border-radius: 4px;
-      padding: 2px 7px;
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--cyan);
-      z-index: 2
-    }
-
-    [data-theme="light"] .img-badge {
-      background: rgba(2, 132, 199, .1)
-    }
-
-    .img-fallback {
-      display: none;
-      flex: 1;
-      min-height: 80px;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 6px;
-      padding: 12px;
-      text-align: center;
-      background: var(--s2)
-    }
-
-    .img-panel.err .img-fallback {
-      display: flex
-    }
-
-    .img-panel.err img {
-      display: none
-    }
-
-    .img-fallback-icon {
-      font-size: 24px;
-      opacity: .4
-    }
-
-    .img-fallback-url {
-      font-family: var(--mono);
-      font-size: 8px;
-      color: var(--cyan);
-      word-break: break-all;
-      text-align: center;
-      opacity: .7
-    }
-
-    /* LAYOUT */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin: 8px 0
-    }
-
-    .clw {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 14px;
-      margin: 8px 0
-    }
-
-    .crw {
-      display: grid;
-      grid-template-columns: 1fr 1.4fr;
-      gap: 14px;
-      margin: 8px 0
-    }
-
-    .three-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin: 8px 0
-    }
-
-    /* CARDS */
-    .prose-card {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px
-    }
-
-    .prose-card h3 {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--cyan);
-      margin-bottom: 7px;
-      font-family: var(--mono);
-      letter-spacing: 1px;
-      text-transform: uppercase
-    }
-
-    .prose-card p {
-      font-size: 13px;
-      color: var(--body-text);
-      line-height: 1.75;
-      margin: 0
-    }
-
-    .prose-card ul {
-      margin: 0;
-      padding: 0;
-      list-style: none
-    }
-
-    .prose-card li {
-      font-size: 13px;
-      color: var(--body-text);
-      line-height: 1.85;
-      padding-left: 14px;
-      position: relative
-    }
-
-    .prose-card li::before {
-      content: '›';
-      position: absolute;
-      left: 0;
-      color: var(--cyan)
-    }
-
-    code {
-      font-family: var(--mono);
-      font-size: 11px;
-      background: var(--code-bg);
-      color: var(--cyan);
-      padding: 2px 6px;
-      border-radius: 3px;
-      border: 1px solid var(--border)
-    }
-
-    /* KICKER */
-    .kicker-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 10px 0
-    }
-
-    .kicker {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center
-    }
-
-    .kicker-n {
-      font-family: var(--mono);
-      font-size: 22px;
-      font-weight: 600
-    }
-
-    .kicker-l {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 3px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      line-height: 1.4
-    }
-
-    /* PIPELINE */
-    .pipeline {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      margin: 10px 0
-    }
-
-    .ps {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      flex: 1;
-      min-width: 0;
-      text-align: center
-    }
-
-    .ps-sub {
-      font-size: 9px;
-      color: var(--muted);
-      margin-bottom: 2px;
-      text-transform: uppercase;
-      letter-spacing: 1px
-    }
-
-    .ps-name {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text)
-    }
-
-    .ps.hi {
-      border-color: var(--cyan);
-      background: rgba(0, 229, 255, .06)
-    }
-
-    .ps.hi .ps-name {
-      color: var(--cyan)
-    }
-
-    .ps.hi2 {
-      border-color: var(--green);
-      background: rgba(57, 255, 138, .05)
-    }
-
-    .ps.hi2 .ps-name {
-      color: var(--green)
-    }
-
-    .arr {
-      color: var(--muted);
-      font-size: 15px;
-      padding: 0 4px;
-      flex-shrink: 0
-    }
-
-    /* SPEC LIST */
-    .spec-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin: 8px 0
-    }
-
-    .spec-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: .15s
-    }
-
-    .spec-item:hover {
-      border-color: var(--cyan)
-    }
-
-    .chk {
-      width: 14px;
-      height: 14px;
-      border: 1px solid var(--cyan);
-      border-radius: 3px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      transition: .15s
-    }
-
-    .chk.on {
-      background: var(--cyan);
-      color: #000;
-      font-weight: 700
-    }
-
-    .spec-label {
-      font-size: 12px;
-      color: var(--body-text);
-      flex: 1
-    }
-
-    .spec-val {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--green)
-    }
-
-    /* DIAGRAMS */
-    .diag-wrap {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 8px 0;
-      overflow: hidden
-    }
-
-    /* BARS */
-    .bar-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px
-    }
-
-    .bar-label {
-      font-family: var(--mono);
-      font-size: 12px;
-      width: 60px;
-      flex-shrink: 0;
-      text-align: right
-    }
-
-    .bar-track {
-      flex: 1;
-      height: 28px;
-      background: var(--s3);
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid var(--border)
-    }
-
-    .bar-fill {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      padding-left: 10px;
-      font-size: 11px;
-      font-family: var(--mono);
-      font-weight: 500;
-      border-radius: 4px;
-      transition: width 1.2s cubic-bezier(.4, 0, .2, 1);
-      color: #fff
-    }
-
-    .bar-end {
-      font-family: var(--mono);
-      font-size: 12px;
-      width: 50px;
-      flex-shrink: 0
-    }
-
-    /* TIMELINE */
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin: 8px 0
-    }
-
-    .tl-item {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start
-    }
-
-    .tl-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      flex-shrink: 0;
-      margin-top: 5px
-    }
-
-    .tl-year {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--cyan);
-      width: 46px;
-      flex-shrink: 0;
-      padding-top: 2px
-    }
-
-    .tl-text {
-      font-size: 13px;
-      color: var(--body-text);
-      line-height: 1.6
-    }
-
-    /* IMPACT */
-    .impact-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin: 8px 0
-    }
-
-    .impact-card {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px
-    }
-
-    .impact-n {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 4px
-    }
-
-    .impact-d {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.4
-    }
-
-    /* TAKEAWAY */
-    .takeaway {
-      display: flex;
-      gap: 14px;
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 13px;
-      margin-bottom: 8px
-    }
-
-    .tk-num {
-      font-family: var(--mono);
-      font-size: 20px;
-      font-weight: 700;
-      flex-shrink: 0;
-      line-height: 1
-    }
-
-    .tk-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--heading);
-      margin-bottom: 4px
-    }
-
-    .tk-body {
-      font-size: 13px;
-      color: var(--body-text);
-      line-height: 1.6
-    }
-
-    /* TABS */
-    .tab-row {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex-wrap: wrap
-    }
-
-    .tab-btn {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 6px 14px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      transition: .15s
-    }
-
-    .tab-btn.on {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: rgba(0, 229, 255, .07)
-    }
-
-    [data-theme="light"] .tab-btn.on {
-      background: rgba(2, 132, 199, .07)
-    }
-
-    .tab-panel {
-      display: none
-    }
-
-    .tab-panel.on {
-      display: block
-    }
-
-    /* NAV */
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 28px;
-      background: var(--s1);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0
-    }
-
-    .nav-btn {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 2px;
-      padding: 8px 22px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: .2s
-    }
-
-    .nav-btn:hover:not(:disabled) {
-      border-color: var(--cyan);
-      color: var(--cyan)
-    }
-
-    .nav-btn:disabled {
-      opacity: .25;
-      cursor: default
-    }
-
-    .dots {
-      display: flex;
-      gap: 6px;
-      align-items: center
-    }
-
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--border);
-      cursor: pointer;
-      transition: .2s
-    }
-
-    .dot.on {
-      background: var(--cyan);
-      width: 16px;
-      border-radius: 3px
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width:768px) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google TPU — Neural Machine Translation · IT130</title>
+  </head>
+
+  <body>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #060d1a;
+        --s1: #0d1625;
+        --s2: #111e32;
+        --s3: #16284a;
+        --cyan: #00e5ff;
+        --green: #39ff8a;
+        --amber: #ffb400;
+        --pink: #ff4daa;
+        --purple: #a78bfa;
+        --text: #dde7f5;
+        --muted: #5a7a9e;
+        --border: #1a3050;
+        --heading: #ffffff;
+        --body-text: #8fa8c0;
+        --code-bg: #0a1929;
+        --font: "Space Grotesk", sans-serif;
+        --mono: "JetBrains Mono", monospace;
+      }
+
+      [data-theme="light"] {
+        --bg: #f8fafc;
+        --s1: #f1f5f9;
+        --s2: #edf2f7;
+        --s3: #dde7f5;
+        --cyan: #0284c7;
+        --green: #15803d;
+        --amber: #b45309;
+        --pink: #be185d;
+        --purple: #6d28d9;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #cbd5e1;
+        --heading: #0f172a;
+        --body-text: #475569;
+        --code-bg: rgba(2, 132, 199, 0.08);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        height: 100dvh;
+        overflow: hidden;
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+
+      .pres {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+      }
+
+      /* TOPBAR */
       .topbar {
-        padding: 8px 14px
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 28px;
+        background: var(--s1);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        gap: 12px;
       }
 
       .tb-logo {
-        font-size: 9px;
-        letter-spacing: 1px
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--cyan);
+        letter-spacing: 2px;
+        white-space: nowrap;
       }
 
       .tb-title {
-        font-size: 11px
+        font-size: 13px;
+        color: var(--muted);
+        text-align: center;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .nav {
-        padding: 8px 14px
+      .tb-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .tb-ctr {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .icon-btn {
+        font-size: 13px;
+        padding: 4px 8px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+        line-height: 1;
+      }
+
+      .icon-btn:hover {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+
+      .theme-btn {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 1px;
+        padding: 5px 10px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+        text-transform: uppercase;
+      }
+
+      .theme-btn:hover {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+
+      /* PROGRESS */
+      .prog {
+        height: 3px;
+        background: var(--border);
+        flex-shrink: 0;
+      }
+
+      .prog-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--cyan), var(--green));
+        transition: width 0.4s ease;
+      }
+
+      /* SLIDES */
+      .area {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
       }
 
       .slide {
-        padding: 16px 18px
+        position: absolute;
+        inset: 0;
+        padding: 24px 32px;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: translateX(50px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        overflow-y: auto;
       }
 
-      .two-col,
-      .clw,
+      .slide.active {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+
+      .slide.out {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+
+      .stag {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--cyan);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        opacity: 0.8;
+      }
+
+      .slide h1 {
+        font-size: clamp(24px, 2.8vw, 38px);
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 8px;
+        color: var(--heading);
+      }
+
+      .slide h2 {
+        font-size: clamp(20px, 2.2vw, 30px);
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--heading);
+      }
+
+      .slide p {
+        font-size: clamp(13px, 1.1vw, 15px);
+        color: var(--body-text);
+        line-height: 1.75;
+        margin-bottom: 8px;
+      }
+
+      .hl {
+        color: var(--cyan);
+      }
+
+      .hl2 {
+        color: var(--green);
+      }
+
+      .hl3 {
+        color: var(--amber);
+      }
+
+      .hlp {
+        color: var(--purple);
+      }
+
+      /* IMG PANEL */
+      .img-panel {
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--s2);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .img-panel img {
+        width: 100%;
+        flex: 1;
+        object-fit: cover;
+        display: block;
+        min-height: 0;
+      }
+
+      .img-panel img.loaded {
+        opacity: 1;
+      }
+
+      .img-footer {
+        padding: 7px 12px;
+        background: rgba(6, 13, 26, 0.88);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      [data-theme="light"] .img-footer {
+        background: rgba(241, 245, 249, 0.95);
+        border-top: 1px solid var(--border);
+      }
+
+      .img-caption-text {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--muted);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .img-link {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--cyan);
+        text-decoration: none;
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 2px 6px;
+        transition: 0.15s;
+      }
+
+      .img-link:hover {
+        border-color: var(--cyan);
+      }
+
+      .img-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 229, 255, 0.15);
+        border: 1px solid var(--cyan);
+        border-radius: 4px;
+        padding: 2px 7px;
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--cyan);
+        z-index: 2;
+      }
+
+      [data-theme="light"] .img-badge {
+        background: rgba(2, 132, 199, 0.1);
+      }
+
+      .img-fallback {
+        display: none;
+        flex: 1;
+        min-height: 80px;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px;
+        text-align: center;
+        background: var(--s2);
+      }
+
+      .img-panel.err .img-fallback {
+        display: flex;
+      }
+
+      .img-panel.err img {
+        display: none;
+      }
+
+      .img-fallback-icon {
+        font-size: 24px;
+        opacity: 0.4;
+      }
+
+      .img-fallback-url {
+        font-family: var(--mono);
+        font-size: 8px;
+        color: var(--cyan);
+        word-break: break-all;
+        text-align: center;
+        opacity: 0.7;
+      }
+
+      /* LAYOUT */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin: 8px 0;
+      }
+
+      .clw {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 14px;
+        margin: 8px 0;
+      }
+
       .crw {
-        grid-template-columns: 1fr
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 14px;
+        margin: 8px 0;
       }
 
       .three-col {
-        grid-template-columns: 1fr 1fr
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin: 8px 0;
       }
 
-      .kicker-row {
-        grid-template-columns: repeat(2, 1fr)
+      /* CARDS */
+      .prose-card {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
       }
 
-      .spec-list {
-        grid-template-columns: 1fr
+      .prose-card h3 {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--cyan);
+        margin-bottom: 7px;
+        font-family: var(--mono);
+        letter-spacing: 1px;
+        text-transform: uppercase;
       }
 
-      .impact-grid {
-        grid-template-columns: 1fr 1fr
+      .prose-card p {
+        font-size: 13px;
+        color: var(--body-text);
+        line-height: 1.75;
+        margin: 0;
       }
 
-      .pipeline {
-        flex-wrap: wrap;
-        gap: 4px
+      .prose-card ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
       }
 
-      .arr {
-        font-size: 12px;
-        padding: 0 2px
-      }
-
-      .slide h1 {
-        font-size: 22px
-      }
-
-      .slide h2 {
-        font-size: 19px
-      }
-    }
-
-    @media (max-width:480px) {
-      .slide {
-        padding: 12px 14px
-      }
-
-      .three-col,
-      .kicker-row {
-        grid-template-columns: 1fr 1fr
-      }
-
-      .pipeline {
-        gap: 3px
-      }
-
-      .arr {
-        display: none
-      }
-
-      .slide h1 {
-        font-size: 20px
-      }
-
-      .slide h2 {
-        font-size: 17px
-      }
-
-      .prose-card p,
-      .prose-card li,
-      .tl-text,
-      .tk-body {
-        font-size: 12px
-      }
-    }
-
-    @media (min-width:1280px) {
-
-      .topbar,
-      .nav {
-        padding: 12px 40px
-      }
-
-      .slide {
-        padding: 32px 48px
-      }
-
-      .slide h1 {
-        font-size: 42px
-      }
-
-      .slide h2 {
-        font-size: 32px
-      }
-
-      .slide p {
-        font-size: 16px
-      }
-
-      .prose-card p,
       .prose-card li {
-        font-size: 15px
+        font-size: 13px;
+        color: var(--body-text);
+        line-height: 1.85;
+        padding-left: 14px;
+        position: relative;
       }
 
-      .tl-text {
-        font-size: 15px
+      .prose-card li::before {
+        content: "›";
+        position: absolute;
+        left: 0;
+        color: var(--cyan);
       }
 
-      .tk-title {
-        font-size: 15px
+      code {
+        font-family: var(--mono);
+        font-size: 11px;
+        background: var(--code-bg);
+        color: var(--cyan);
+        padding: 2px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
       }
 
-      .tk-body {
-        font-size: 14px
+      /* KICKER */
+      .kicker-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 10px 0;
+      }
+
+      .kicker {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
       }
 
       .kicker-n {
-        font-size: 26px
+        font-family: var(--mono);
+        font-size: 22px;
+        font-weight: 600;
       }
 
-      .impact-n {
-        font-size: 26px
-      }
-    }
-
-    @media (min-width:1600px) {
-      .slide {
-        padding: 40px 60px
-      }
-
-      .slide h1 {
-        font-size: 52px
+      .kicker-l {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 3px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        line-height: 1.4;
       }
 
-      .slide h2 {
-        font-size: 38px
+      /* PIPELINE */
+      .pipeline {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin: 10px 0;
       }
 
-      .slide p {
-        font-size: 18px
+      .ps {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 10px;
+        flex: 1;
+        min-width: 0;
+        text-align: center;
       }
 
-      .prose-card p,
-      .prose-card li {
-        font-size: 16px
+      .ps-sub {
+        font-size: 9px;
+        color: var(--muted);
+        margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .ps-name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .ps.hi {
+        border-color: var(--cyan);
+        background: rgba(0, 229, 255, 0.06);
+      }
+
+      .ps.hi .ps-name {
+        color: var(--cyan);
+      }
+
+      .ps.hi2 {
+        border-color: var(--green);
+        background: rgba(57, 255, 138, 0.05);
+      }
+
+      .ps.hi2 .ps-name {
+        color: var(--green);
+      }
+
+      .arr {
+        color: var(--muted);
+        font-size: 15px;
+        padding: 0 4px;
+        flex-shrink: 0;
+      }
+
+      /* SPEC LIST */
+      .spec-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin: 8px 0;
+      }
+
+      .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+
+      .spec-item:hover {
+        border-color: var(--cyan);
+      }
+
+      .chk {
+        width: 14px;
+        height: 14px;
+        border: 1px solid var(--cyan);
+        border-radius: 3px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        transition: 0.15s;
+      }
+
+      .chk.on {
+        background: var(--cyan);
+        color: #000;
+        font-weight: 700;
+      }
+
+      .spec-label {
+        font-size: 12px;
+        color: var(--body-text);
+        flex: 1;
+      }
+
+      .spec-val {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--green);
+      }
+
+      /* DIAGRAMS */
+      .diag-wrap {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        margin: 8px 0;
+        overflow: hidden;
+      }
+
+      /* BARS */
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .bar-label {
+        font-family: var(--mono);
+        font-size: 12px;
+        width: 60px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .bar-track {
+        flex: 1;
+        height: 28px;
+        background: var(--s3);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .bar-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        font-size: 11px;
+        font-family: var(--mono);
+        font-weight: 500;
+        border-radius: 4px;
+        transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #fff;
+      }
+
+      .bar-end {
+        font-family: var(--mono);
+        font-size: 12px;
+        width: 50px;
+        flex-shrink: 0;
+      }
+
+      /* TIMELINE */
+      .timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 8px 0;
+      }
+
+      .tl-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .tl-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--cyan);
+        flex-shrink: 0;
+        margin-top: 5px;
+      }
+
+      .tl-year {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--cyan);
+        width: 46px;
+        flex-shrink: 0;
+        padding-top: 2px;
       }
 
       .tl-text {
-        font-size: 16px
+        font-size: 13px;
+        color: var(--body-text);
+        line-height: 1.6;
+      }
+
+      /* IMPACT */
+      .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 8px 0;
+      }
+
+      .impact-card {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .impact-n {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .impact-d {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      /* TAKEAWAY */
+      .takeaway {
+        display: flex;
+        gap: 14px;
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 13px;
+        margin-bottom: 8px;
+      }
+
+      .tk-num {
+        font-family: var(--mono);
+        font-size: 20px;
+        font-weight: 700;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+
+      .tk-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--heading);
+        margin-bottom: 4px;
       }
 
       .tk-body {
-        font-size: 15px
-      }
-    }
-
-    /* ── DEMO PANELS ── */
-    .demo-panel {
-      background: var(--s2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-top: 8px;
-      flex-shrink: 0
-    }
-
-    .demo-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px
-    }
-
-    .demo-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--cyan);
-      letter-spacing: 2px;
-      text-transform: uppercase
-    }
-
-    .demo-btns {
-      display: flex;
-      gap: 5px
-    }
-
-    .demo-btn {
-      font-family: var(--mono);
-      font-size: 9px;
-      padding: 4px 11px;
-      border: 1px solid var(--cyan);
-      border-radius: 4px;
-      background: rgba(0, 229, 255, .07);
-      color: var(--cyan);
-      cursor: pointer;
-      transition: .15s;
-      letter-spacing: 1px
-    }
-
-    .demo-btn:hover {
-      background: rgba(0, 229, 255, .18)
-    }
-
-    .demo-btn.dim {
-      border-color: var(--border);
-      color: var(--muted);
-      background: transparent
-    }
-
-    .demo-btn.dim:hover {
-      border-color: var(--muted)
-    }
-
-    .calc-box {
-      background: #050c17;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.8;
-      flex: 1
-    }
-
-    [data-theme="light"] .calc-box {
-      background: var(--s3)
-    }
-
-    .cr {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      opacity: 0;
-      transition: opacity .4s;
-      flex-wrap: wrap;
-      margin-bottom: 2px
-    }
-
-    .cr.vis {
-      opacity: 1
-    }
-
-    .cv {
-      color: var(--cyan)
-    }
-
-    .gv {
-      color: var(--green);
-      font-weight: 700
-    }
-
-    .av {
-      color: var(--amber)
-    }
-
-    .pv {
-      color: var(--purple)
-    }
-
-    .mv {
-      color: var(--muted)
-    }
-
-    .rv {
-      color: var(--pink)
-    }
-
-    .pe-g {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px
-    }
-
-    .pe-d {
-      background: var(--s3);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 5px 3px;
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 9px;
-      line-height: 1.4;
-      transition: all .35s;
-      min-height: 42px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center
-    }
-
-    .pe-load {
-      border-color: var(--green) !important;
-      background: rgba(57, 255, 138, .06) !important
-    }
-
-    .pe-run {
-      border-color: var(--cyan) !important;
-      background: rgba(0, 229, 255, .09) !important;
-      animation: pe-glow .5s ease-in-out infinite alternate
-    }
-
-    .pe-done {
-      border-color: var(--amber) !important;
-      background: rgba(255, 180, 0, .05) !important
-    }
-
-    @keyframes pe-glow {
-      to {
-        box-shadow: 0 0 10px rgba(0, 229, 255, .4)
-      }
-    }
-
-    @keyframes pa-blink {
-
-      0%,
-      100% {
-        opacity: .5
+        font-size: 13px;
+        color: var(--body-text);
+        line-height: 1.6;
       }
 
-      50% {
-        opacity: 1
+      /* TABS */
+      .tab-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
       }
-    }
 
-    .pa-on {
-      border-color: var(--cyan) !important;
-      background: rgba(0, 229, 255, .1) !important;
-      color: var(--cyan) !important;
-      animation: pa-blink .6s infinite
-    }
+      .tab-btn {
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 6px 14px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: 0.15s;
+      }
 
-    .pa-bot {
-      border-color: var(--pink) !important;
-      background: rgba(255, 77, 170, .1) !important;
-      color: var(--pink) !important;
-      animation: pa-blink .4s infinite
-    }
-  </style>
+      .tab-btn.on {
+        border-color: var(--cyan);
+        color: var(--cyan);
+        background: rgba(0, 229, 255, 0.07);
+      }
 
-  <h2 class="sr-only">TPU NMT Presentation with images</h2>
+      [data-theme="light"] .tab-btn.on {
+        background: rgba(2, 132, 199, 0.07);
+      }
 
-  <div class="pres">
-    <div class="topbar">
-      <span class="tb-logo">IT130 · CH.10</span>
-      <span class="tb-title" id="tb-title">Google TPU for Neural Machine Translation</span>
-      <div class="tb-right">
-        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
-        <button class="icon-btn" onclick="toggleFS()" title="Fullscreen (F)">⛶</button>
-        <span class="tb-ctr" id="tb-ctr">01 / 10</span>
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.on {
+        display: block;
+      }
+
+      /* NAV */
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 28px;
+        background: var(--s1);
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .nav-btn {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        padding: 8px 22px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: 0.2s;
+      }
+
+      .nav-btn:hover:not(:disabled) {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.25;
+        cursor: default;
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .dot.on {
+        background: var(--cyan);
+        width: 16px;
+        border-radius: 3px;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .topbar {
+          padding: 8px 14px;
+        }
+
+        .tb-logo {
+          font-size: 9px;
+          letter-spacing: 1px;
+        }
+
+        .tb-title {
+          font-size: 11px;
+        }
+
+        .nav {
+          padding: 8px 14px;
+        }
+
+        .slide {
+          padding: 16px 18px;
+        }
+
+        .two-col,
+        .clw,
+        .crw {
+          grid-template-columns: 1fr;
+        }
+
+        .three-col {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .kicker-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .spec-list {
+          grid-template-columns: 1fr;
+        }
+
+        .impact-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .pipeline {
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+
+        .arr {
+          font-size: 12px;
+          padding: 0 2px;
+        }
+
+        .slide h1 {
+          font-size: 22px;
+        }
+
+        .slide h2 {
+          font-size: 19px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .slide {
+          padding: 12px 14px;
+        }
+
+        .three-col,
+        .kicker-row {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .pipeline {
+          gap: 3px;
+        }
+
+        .arr {
+          display: none;
+        }
+
+        .slide h1 {
+          font-size: 20px;
+        }
+
+        .slide h2 {
+          font-size: 17px;
+        }
+
+        .prose-card p,
+        .prose-card li,
+        .tl-text,
+        .tk-body {
+          font-size: 12px;
+        }
+      }
+
+      @media (min-width: 1280px) {
+        .topbar,
+        .nav {
+          padding: 12px 40px;
+        }
+
+        .slide {
+          padding: 32px 48px;
+        }
+
+        .slide h1 {
+          font-size: 42px;
+        }
+
+        .slide h2 {
+          font-size: 32px;
+        }
+
+        .slide p {
+          font-size: 16px;
+        }
+
+        .prose-card p,
+        .prose-card li {
+          font-size: 15px;
+        }
+
+        .tl-text {
+          font-size: 15px;
+        }
+
+        .tk-title {
+          font-size: 15px;
+        }
+
+        .tk-body {
+          font-size: 14px;
+        }
+
+        .kicker-n {
+          font-size: 26px;
+        }
+
+        .impact-n {
+          font-size: 26px;
+        }
+      }
+
+      @media (min-width: 1600px) {
+        .slide {
+          padding: 40px 60px;
+        }
+
+        .slide h1 {
+          font-size: 52px;
+        }
+
+        .slide h2 {
+          font-size: 38px;
+        }
+
+        .slide p {
+          font-size: 18px;
+        }
+
+        .prose-card p,
+        .prose-card li {
+          font-size: 16px;
+        }
+
+        .tl-text {
+          font-size: 16px;
+        }
+
+        .tk-body {
+          font-size: 15px;
+        }
+      }
+
+      /* ── DEMO PANELS ── */
+      .demo-panel {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        flex-shrink: 0;
+      }
+
+      .demo-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .demo-label {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--cyan);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .demo-btns {
+        display: flex;
+        gap: 5px;
+      }
+
+      .demo-btn {
+        font-family: var(--mono);
+        font-size: 9px;
+        padding: 4px 11px;
+        border: 1px solid var(--cyan);
+        border-radius: 4px;
+        background: rgba(0, 229, 255, 0.07);
+        color: var(--cyan);
+        cursor: pointer;
+        transition: 0.15s;
+        letter-spacing: 1px;
+      }
+
+      .demo-btn:hover {
+        background: rgba(0, 229, 255, 0.18);
+      }
+
+      .demo-btn.dim {
+        border-color: var(--border);
+        color: var(--muted);
+        background: transparent;
+      }
+
+      .demo-btn.dim:hover {
+        border-color: var(--muted);
+      }
+
+      .calc-box {
+        background: #050c17;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.8;
+        flex: 1;
+      }
+
+      [data-theme="light"] .calc-box {
+        background: var(--s3);
+      }
+
+      .cr {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.4s;
+        flex-wrap: wrap;
+        margin-bottom: 2px;
+      }
+
+      .cr.vis {
+        opacity: 1;
+      }
+
+      .cv {
+        color: var(--cyan);
+      }
+
+      .gv {
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      .av {
+        color: var(--amber);
+      }
+
+      .pv {
+        color: var(--purple);
+      }
+
+      .mv {
+        color: var(--muted);
+      }
+
+      .rv {
+        color: var(--pink);
+      }
+
+      .pe-g {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+      }
+
+      .pe-d {
+        background: var(--s3);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 5px 3px;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 9px;
+        line-height: 1.4;
+        transition: all 0.35s;
+        min-height: 42px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pe-load {
+        border-color: var(--green) !important;
+        background: rgba(57, 255, 138, 0.06) !important;
+      }
+
+      .pe-run {
+        border-color: var(--cyan) !important;
+        background: rgba(0, 229, 255, 0.09) !important;
+        animation: pe-glow 0.5s ease-in-out infinite alternate;
+      }
+
+      .pe-done {
+        border-color: var(--amber) !important;
+        background: rgba(255, 180, 0, 0.05) !important;
+      }
+
+      @keyframes pe-glow {
+        to {
+          box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+        }
+      }
+
+      @keyframes pa-blink {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .pa-on {
+        border-color: var(--cyan) !important;
+        background: rgba(0, 229, 255, 0.1) !important;
+        color: var(--cyan) !important;
+        animation: pa-blink 0.6s infinite;
+      }
+
+      .pa-bot {
+        border-color: var(--pink) !important;
+        background: rgba(255, 77, 170, 0.1) !important;
+        color: var(--pink) !important;
+        animation: pa-blink 0.4s infinite;
+      }
+    </style>
+
+    <h2 class="sr-only">TPU NMT Presentation with images</h2>
+
+    <div class="pres">
+      <div class="topbar">
+        <span class="tb-logo">IT130 · CH.10</span>
+        <span class="tb-title" id="tb-title"
+          >Google TPU for Neural Machine Translation</span
+        >
+        <div class="tb-right">
+          <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+            ☀ Light
+          </button>
+          <button class="icon-btn" onclick="toggleFS()" title="Fullscreen (F)">
+            ⛶
+          </button>
+          <span class="tb-ctr" id="tb-ctr">01 / 10</span>
+        </div>
       </div>
-    </div>
-    <div class="prog">
-      <div class="prog-fill" id="prog" style="width:10%"></div>
-    </div>
+      <div class="prog">
+        <div class="prog-fill" id="prog" style="width: 10%"></div>
+      </div>
 
-    <div class="area">
-
-      <!-- ══ S0: TITLE ══ -->
-      <div class="slide active" id="s0">
-        <div class="stag">Assignment 18 · ANN Hardware Accelerators · IT130</div>
-        <div class="crw" style="flex:1;align-items:stretch">
-          <div style="display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <h1>Google <span class="hl">Tensor Processing Unit</span><br>for Neural Machine Translation</h1>
-              <p style="color:var(--muted);margin-bottom:12px">Chapter 10 — Special-Purpose Architectures · Payap
-                University</p>
-              <p>In 2016, serving NMT to all users would need <span class="hl">2× global data center capacity</span> on
-                CPUs. The TPU replaced von Neumann execution with a 65,536-MAC systolic array — making it economically
-                viable.</p>
-            </div>
-            <div class="kicker-row">
-              <div class="kicker">
-                <div class="kicker-n hl">83×</div>
-                <div class="kicker-l">Perf/Watt vs CPU</div>
-              </div>
-              <div class="kicker">
-                <div class="kicker-n hl2">92</div>
-                <div class="kicker-l">Peak TOPS</div>
-              </div>
-              <div class="kicker">
-                <div class="kicker-n hl3">65K</div>
-                <div class="kicker-l">MACs/cycle</div>
-              </div>
-              <div class="kicker">
-                <div class="kicker-n hlp">28nm</div>
-                <div class="kicker-l">TSMC Node</div>
-              </div>
-            </div>
+      <div class="area">
+        <!-- ══ S0: TITLE ══ -->
+        <div class="slide active" id="s0">
+          <div class="stag">
+            Assignment 18 · ANN Hardware Accelerators · IT130
           </div>
-          <div class="img-panel" style="flex:1">
-            <div class="img-badge">GOOGLE CLOUD TPU</div>
-            <img src="/assets/tpu.webp" crossorigin="anonymous" onerror="imgErr(this)" alt="Google Cloud TPU chip"
-              style="flex:1;min-height:150px">
-            <div class="img-fallback">
-              <div class="img-fallback-icon">🖼</div>
-              <div style="font-size:9px;color:var(--muted)">Google Cloud TPU hardware</div>
-              <div class="img-fallback-url">storage.googleapis.com/gweb-cloudblog-publish/images/tpu-19bkw9.PNG</div>
+          <div class="crw" style="flex: 1; align-items: stretch">
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+              "
+            >
+              <div>
+                <h1>
+                  Google <span class="hl">Tensor Processing Unit</span><br />for
+                  Neural Machine Translation
+                </h1>
+                <p style="color: var(--muted); margin-bottom: 12px">
+                  Chapter 10 — Special-Purpose Architectures · Payap University
+                </p>
+                <p>
+                  In 2016, serving NMT to all users would need
+                  <span class="hl">2× global data center capacity</span> on
+                  CPUs. The TPU replaced von Neumann execution with a 65,536-MAC
+                  systolic array — making it economically viable.
+                </p>
+              </div>
+              <div class="kicker-row">
+                <div class="kicker">
+                  <div class="kicker-n hl">83×</div>
+                  <div class="kicker-l">Perf/Watt vs CPU</div>
+                </div>
+                <div class="kicker">
+                  <div class="kicker-n hl2">92</div>
+                  <div class="kicker-l">Peak TOPS</div>
+                </div>
+                <div class="kicker">
+                  <div class="kicker-n hl3">65K</div>
+                  <div class="kicker-l">MACs/cycle</div>
+                </div>
+                <div class="kicker">
+                  <div class="kicker-n hlp">28nm</div>
+                  <div class="kicker-l">TSMC Node</div>
+                </div>
+              </div>
+            </div>
+            <div class="img-panel" style="flex: 1">
+              <div class="img-badge">GOOGLE CLOUD TPU</div>
+              <img
+                src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/tpu.webp"
+                crossorigin="anonymous"
+                onerror="imgErr(this)"
+                alt="Google Cloud TPU chip"
+                style="flex: 1; min-height: 150px"
+              />
+              <div class="img-fallback">
+                <div class="img-fallback-icon">🖼</div>
+                <div style="font-size: 9px; color: var(--muted)">
+                  Google Cloud TPU hardware
+                </div>
+                <div class="img-fallback-url">
+                  storage.googleapis.com/gweb-cloudblog-publish/images/tpu-19bkw9.PNG
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ══ S1: THE PROBLEM ══ -->
-      <div class="slide" id="s1">
-        <div class="stag">01 · The Architectural Problem</div>
-        <h2>Why CPUs Cannot Scale for Neural Translation</h2>
-        <div class="two-col">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="prose-card">
-              <h3>Von Neumann Bottleneck</h3>
-              <p>CPUs fetch instructions and data through a shared bus. NMT inference needs <span class="hl">~10¹¹ MAC
-                  operations</span> per sentence — every MAC demands a memory fetch. The bus saturates completely.</p>
+        <!-- ══ S1: THE PROBLEM ══ -->
+        <div class="slide" id="s1">
+          <div class="stag">01 · The Architectural Problem</div>
+          <h2>Why CPUs Cannot Scale for Neural Translation</h2>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="prose-card">
+                <h3>Von Neumann Bottleneck</h3>
+                <p>
+                  CPUs fetch instructions and data through a shared bus. NMT
+                  inference needs
+                  <span class="hl">~10¹¹ MAC operations</span> per sentence —
+                  every MAC demands a memory fetch. The bus saturates
+                  completely.
+                </p>
+              </div>
+              <div class="prose-card">
+                <h3>NMT Workload Profile</h3>
+                <ul>
+                  <li>
+                    <span class="hl2">~90%</span> of compute = matrix multiply
+                  </li>
+                  <li>Weights are static during inference</li>
+                  <li>No data-dependent branching</li>
+                  <li>
+                    Latency target: <span class="hl">&lt;1ms</span> per sentence
+                  </li>
+                  <li>INT8 precision sufficient</li>
+                </ul>
+              </div>
+              <div class="prose-card" style="border-color: var(--amber)">
+                <h3 style="color: var(--amber)">The Scale Problem</h3>
+                <p>
+                  200M daily Translate users × 10⁸ MACs/token =
+                  <span class="hl3">2×10¹⁷ MACs/day</span> — economically
+                  impossible on CPU infrastructure.
+                </p>
+              </div>
             </div>
-            <div class="prose-card">
-              <h3>NMT Workload Profile</h3>
-              <ul>
-                <li><span class="hl2">~90%</span> of compute = matrix multiply</li>
-                <li>Weights are static during inference</li>
-                <li>No data-dependent branching</li>
-                <li>Latency target: <span class="hl">&lt;1ms</span> per sentence</li>
-                <li>INT8 precision sufficient</li>
-              </ul>
-            </div>
-            <div class="prose-card" style="border-color:var(--amber)">
-              <h3 style="color:var(--amber)">The Scale Problem</h3>
-              <p>200M daily Translate users × 10⁸ MACs/token = <span class="hl3">2×10¹⁷ MACs/day</span> — economically
-                impossible on CPU infrastructure.</p>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="img-panel" style="flex: 1">
+                <div class="img-badge">DATA CENTER SCALE</div>
+                <img
+                  src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/data-center.webp"
+                  crossorigin="anonymous"
+                  onerror="imgErr(this)"
+                  alt="Data center server racks"
+                  style="flex: 1; min-height: 160px"
+                />
+              </div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="img-panel" style="flex:1">
-              <div class="img-badge">DATA CENTER SCALE</div>
-              <img src="/assets/data-center.webp" crossorigin="anonymous" onerror="imgErr(this)"
-                alt="Data center server racks" style="flex:1;min-height:160px">
+          <div class="pipeline">
+            <div class="ps hi">
+              <div class="ps-sub">CPU</div>
+              <div class="ps-name">Fetch Instr.</div>
+            </div>
+            <div class="arr">→</div>
+            <div class="ps hi">
+              <div class="ps-sub">Memory Bus</div>
+              <div class="ps-name">Load Weight</div>
+            </div>
+            <div class="arr">→</div>
+            <div class="ps">
+              <div class="ps-sub">ALU</div>
+              <div class="ps-name">1× MAC</div>
+            </div>
+            <div class="arr">→</div>
+            <div class="ps hi">
+              <div class="ps-sub">Memory Bus</div>
+              <div class="ps-name">Store Result</div>
+            </div>
+            <div class="arr">→</div>
+            <div class="ps">
+              <div class="ps-sub">Repeat</div>
+              <div class="ps-name">× 10¹¹</div>
             </div>
           </div>
         </div>
-        <div class="pipeline">
-          <div class="ps hi">
-            <div class="ps-sub">CPU</div>
-            <div class="ps-name">Fetch Instr.</div>
-          </div>
-          <div class="arr">→</div>
-          <div class="ps hi">
-            <div class="ps-sub">Memory Bus</div>
-            <div class="ps-name">Load Weight</div>
-          </div>
-          <div class="arr">→</div>
-          <div class="ps">
-            <div class="ps-sub">ALU</div>
-            <div class="ps-name">1× MAC</div>
-          </div>
-          <div class="arr">→</div>
-          <div class="ps hi">
-            <div class="ps-sub">Memory Bus</div>
-            <div class="ps-name">Store Result</div>
-          </div>
-          <div class="arr">→</div>
-          <div class="ps">
-            <div class="ps-sub">Repeat</div>
-            <div class="ps-name">× 10¹¹</div>
+
+        <!-- ══ S2: ANN ARCHITECTURE ══ -->
+        <div class="slide" id="s2">
+          <div class="stag">02 · Neural Network Architecture</div>
+          <h2>Transformer Network — Hardware-Level View</h2>
+          <div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="prose-card">
+                <h3>The MAC Operation</h3>
+                <p>
+                  Every layer computes <code>y = W·x</code>:<br />
+                  <code style="display: block; margin: 6px 0"
+                    >yᵢ = Σ Wᵢⱼ · xⱼ + bᵢ</code
+                  >
+                  With hidden size 512, one encoder layer =
+                  <span class="hl">262,144 MACs per token</span>.
+                </p>
+              </div>
+              <div class="prose-card">
+                <h3>Why It's Hardware-Friendly</h3>
+                <ul>
+                  <li>Weight matrix is read-only at inference</li>
+                  <li>No data-dependent branching</li>
+                  <li>Fully pipelineable pattern</li>
+                  <li>
+                    FP32 training → <span class="hl2">INT8 inference</span>
+                  </li>
+                  <li>All ops reduce to: <code>acc += a × b</code></li>
+                </ul>
+              </div>
+              <div class="pipeline" style="margin: 0">
+                <div class="ps hi">
+                  <div class="ps-sub">Input</div>
+                  <div class="ps-name">Embed</div>
+                </div>
+                <div class="arr">→</div>
+                <div class="ps hi2">
+                  <div class="ps-sub">Attn</div>
+                  <div class="ps-name">Q·K·V</div>
+                </div>
+                <div class="arr">→</div>
+                <div class="ps hi2">
+                  <div class="ps-sub">FFN</div>
+                  <div class="ps-name">W₁·x</div>
+                </div>
+                <div class="arr">→</div>
+                <div class="ps">
+                  <div class="ps-sub">Out</div>
+                  <div class="ps-name">Proj.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ══ S2: ANN ARCHITECTURE ══ -->
-      <div class="slide" id="s2">
-        <div class="stag">02 · Neural Network Architecture</div>
-        <h2>Transformer Network — Hardware-Level View</h2>
-        <div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="prose-card">
-              <h3>The MAC Operation</h3>
-              <p>Every layer computes <code>y = W·x</code>:<br>
-                <code style="display:block;margin:6px 0">yᵢ = Σ Wᵢⱼ · xⱼ + bᵢ</code>
-                With hidden size 512, one encoder layer = <span class="hl">262,144 MACs per token</span>.
+        <!-- ══ S3: SYSTOLIC ARRAY ══ -->
+        <div class="slide" id="s3">
+          <div class="stag">03 · Core Hardware Design</div>
+          <h2>The Systolic Array — Eliminating the Memory Bottleneck</h2>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="prose-card">
+                <h3>What Is a Systolic Array?</h3>
+                <p>
+                  A 2D grid of
+                  <strong style="color: var(--heading)"
+                    >Processing Elements (PEs)</strong
+                  >. Data pulses like a heartbeat. Weights are
+                  <span class="hl">pre-loaded and stationary</span> — only
+                  activations stream through. Zero memory-bus round-trips
+                  between MACs.
+                </p>
+              </div>
+              <div class="prose-card">
+                <h3>TPU v1 MXU: 256 × 256</h3>
+                <ul>
+                  <li>
+                    Grid: <span class="hl">256 rows × 256 cols</span> of PEs
+                  </li>
+                  <li>Each PE: <code>acc += weight × activation</code></li>
+                  <li>
+                    MACs/cycle: <span class="hl2">65,536 simultaneously</span>
+                  </li>
+                  <li>Activations flow right →, partial sums ↓</li>
+                  <li>
+                    Clock: ~700 MHz → <span class="hl">92 TOPS</span> peak
+                  </li>
+                </ul>
+              </div>
+              <div class="diag-wrap" style="margin: 0; padding: 12px">
+                <svg
+                  viewBox="0 0 320 180"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style="width: 100%; height: 180px"
+                >
+                  <text
+                    x="160"
+                    y="14"
+                    fill="#5a7a9e"
+                    font-size="11"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    4×4 SYSTOLIC ARRAY (TPU v1 = 256×256)
+                  </text>
+                  <text
+                    x="60"
+                    y="30"
+                    fill="#00e5ff"
+                    font-size="10"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    a₀↓
+                  </text>
+                  <text
+                    x="120"
+                    y="30"
+                    fill="#00e5ff"
+                    font-size="10"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    a₁↓
+                  </text>
+                  <text
+                    x="180"
+                    y="30"
+                    fill="#00e5ff"
+                    font-size="10"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    a₂↓
+                  </text>
+                  <text
+                    x="240"
+                    y="30"
+                    fill="#00e5ff"
+                    font-size="10"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    a₃↓
+                  </text>
+                  <text
+                    x="2"
+                    y="59"
+                    fill="#39ff8a"
+                    font-size="10"
+                    font-family="JetBrains Mono"
+                  >
+                    w₀→
+                  </text>
+                  <text
+                    x="2"
+                    y="103"
+                    fill="#39ff8a"
+                    font-size="10"
+                    font-family="JetBrains Mono"
+                  >
+                    w₁→
+                  </text>
+                  <text
+                    x="2"
+                    y="147"
+                    fill="#39ff8a"
+                    font-size="10"
+                    font-family="JetBrains Mono"
+                  >
+                    w₂→
+                  </text>
+                  <rect
+                    x="35"
+                    y="38"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#00e5ff"
+                    stroke-width="1.5"
+                  />
+                  <text
+                    x="60"
+                    y="59"
+                    fill="#00e5ff"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-weight="600"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="95"
+                    y="38"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a4060"
+                  />
+                  <text
+                    x="120"
+                    y="59"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="155"
+                    y="38"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a4060"
+                  />
+                  <text
+                    x="180"
+                    y="59"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="215"
+                    y="38"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a4060"
+                  />
+                  <text
+                    x="240"
+                    y="59"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="35"
+                    y="82"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="60"
+                    y="103"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="95"
+                    y="82"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="120"
+                    y="103"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="155"
+                    y="82"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="180"
+                    y="103"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="215"
+                    y="82"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="240"
+                    y="103"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="35"
+                    y="126"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="60"
+                    y="147"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="95"
+                    y="126"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="120"
+                    y="147"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="155"
+                    y="126"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="180"
+                    y="147"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <rect
+                    x="215"
+                    y="126"
+                    width="50"
+                    height="34"
+                    rx="4"
+                    fill="#061829"
+                    stroke="#1a3050"
+                  />
+                  <text
+                    x="240"
+                    y="147"
+                    fill="#5a7a9e"
+                    font-size="12"
+                    text-anchor="middle"
+                    font-family="JetBrains Mono"
+                  >
+                    PE
+                  </text>
+                  <text
+                    x="273"
+                    y="59"
+                    fill="#ffb400"
+                    font-size="11"
+                    font-family="JetBrains Mono"
+                  >
+                    → y₀
+                  </text>
+                  <text
+                    x="273"
+                    y="103"
+                    fill="#ffb400"
+                    font-size="11"
+                    font-family="JetBrains Mono"
+                  >
+                    → y₁
+                  </text>
+                  <text
+                    x="273"
+                    y="147"
+                    fill="#ffb400"
+                    font-size="11"
+                    font-family="JetBrains Mono"
+                  >
+                    → y₂
+                  </text>
+                </svg>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="img-panel" style="flex: 1; min-height: 200px">
+                <div class="img-badge">SILICON WAFER</div>
+                <img
+                  src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/chip.jpg"
+                  crossorigin="anonymous"
+                  onerror="imgErr(this)"
+                  alt="Silicon wafer with microchips"
+                  style="flex: 1; min-height: 160px"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ S4: FULL CHIP ══ -->
+        <div class="slide" id="s4">
+          <div class="stag">04 · TPU v1 Chip Architecture</div>
+          <h2>Complete Hardware Data Path</h2>
+
+          <!-- Legend -->
+          <div
+            style="
+              display: flex;
+              gap: 16px;
+              flex-wrap: wrap;
+              margin-bottom: 12px;
+              font-size: 11px;
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+            "
+          >
+            <span style="display: flex; align-items: center; gap: 5px"
+              ><span
+                style="
+                  display: inline-block;
+                  width: 28px;
+                  height: 3px;
+                  background: #00e5ff;
+                  border-radius: 2px;
+                "
+              ></span>
+              Activation data</span
+            >
+            <span style="display: flex; align-items: center; gap: 5px"
+              ><span
+                style="
+                  display: inline-block;
+                  width: 28px;
+                  height: 3px;
+                  background: #39ff8a;
+                  border-radius: 2px;
+                  border-style: dashed;
+                  border-width: 0 0 2px 0;
+                  background: none;
+                  border-color: #39ff8a;
+                  border-bottom: 2px dashed #39ff8a;
+                "
+              ></span>
+              Weights (preloaded)</span
+            >
+            <span style="display: flex; align-items: center; gap: 5px"
+              ><span
+                style="
+                  display: inline-block;
+                  width: 28px;
+                  height: 3px;
+                  background: #ffb400;
+                  border-radius: 2px;
+                "
+              ></span>
+              Accumulated result</span
+            >
+            <span style="display: flex; align-items: center; gap: 5px"
+              ><span
+                style="
+                  display: inline-block;
+                  width: 28px;
+                  height: 3px;
+                  background: #a78bfa;
+                  border-radius: 2px;
+                "
+              ></span>
+              Activation function</span
+            >
+            <span style="display: flex; align-items: center; gap: 5px"
+              ><span
+                style="
+                  display: inline-block;
+                  width: 28px;
+                  height: 3px;
+                  background: #5a7a9e;
+                  border-radius: 2px;
+                  border-bottom: 2px dashed #5a7a9e;
+                  border-width: 0 0 2px 0;
+                  background: none;
+                "
+              ></span>
+              Output loop-back</span
+            >
+          </div>
+
+          <!-- Main data flow diagram -->
+          <div style="align-items: center; gap: 0; width: 100%; display: flex">
+            <!-- HOST CPU -->
+            <div
+              class="dp-card"
+              style="border-color: #5a7a9e; min-width: 88px"
+              title="x86 server CPU that issues instructions to the TPU over PCIe"
+            >
+              <div class="dp-icon" style="color: #5a7a9e">🖥️</div>
+              <div class="dp-label" style="color: #8fa8c0">Host CPU</div>
+              <div class="dp-sub">x86 server<br />issues ops</div>
+              <div class="dp-tag" style="background: #5a7a9e22; color: #5a7a9e">
+                External
+              </div>
+            </div>
+
+            <div class="dp-arrow dp-arrow-cyan">
+              <div class="dp-arrow-line"></div>
+              <div class="dp-arrow-label">PCIe ×16</div>
+              <div class="dp-arrow-head">▶</div>
+            </div>
+
+            <!-- ON-CHIP BOUNDARY -->
+            <div
+              style="
+                flex: 1;
+                border: 1.5px dashed #1e3a5a;
+                border-radius: 12px;
+                padding: 12px 8px;
+                background: #06101e;
+                min-width: 440px;
+                position: relative;
+              "
+            >
+              <div
+                style="
+                  position: absolute;
+                  top: -10px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background: #06101e;
+                  padding: 0 8px;
+                  font-size: 9px;
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  color: #2a5075;
+                  white-space: nowrap;
+                  letter-spacing: 1px;
+                "
+              >
+                ── ON CHIP ──
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 0">
+                <!-- LEFT BUFFERS COLUMN -->
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    min-width: 90px;
+                  "
+                >
+                  <div
+                    class="dp-card"
+                    style="border-color: #39ff8a; padding: 8px 10px"
+                    title="Weights are preloaded from DRAM into this FIFO queue before computation starts, so the MXU never waits for weights"
+                  >
+                    <div
+                      class="dp-label"
+                      style="color: #5a7a9e; font-size: 10px"
+                    >
+                      Weight
+                    </div>
+                    <div
+                      class="dp-label"
+                      style="color: #39ff8a; font-size: 11px"
+                    >
+                      FIFO
+                    </div>
+                    <div class="dp-sub">preloaded<br />from DRAM</div>
+                  </div>
+
+                  <div
+                    class="dp-card"
+                    style="
+                      border-color: #00e5ff;
+                      padding: 8px 10px;
+                      position: relative;
+                    "
+                    title="28 MB on-chip SRAM. Stores all layer activations so computation never has to wait on slow DRAM"
+                  >
+                    <div class="dp-label" style="color: #00e5ff">
+                      Unified Buffer
+                    </div>
+                    <div class="dp-sub" style="color: #5a7a9e">28 MB SRAM</div>
+                    <div
+                      class="dp-tag"
+                      style="background: #00e5ff22; color: #00e5ff"
+                    >
+                      No DRAM penalty
+                    </div>
+                  </div>
+
+                  <div
+                    class="dp-card"
+                    style="border-color: #2a5075; padding: 8px 10px"
+                    title="Holds decoded CISC macro-instructions. One MatMul op fires 65,536 MACs with no CPU overhead"
+                  >
+                    <div
+                      class="dp-label"
+                      style="color: #5a7a9e; font-size: 10px"
+                    >
+                      Instr.
+                    </div>
+                    <div
+                      class="dp-label"
+                      style="color: #5a7a9e; font-size: 10px"
+                    >
+                      Buffer
+                    </div>
+                    <div class="dp-sub">CISC ops</div>
+                  </div>
+                </div>
+
+                <!-- ARROW: Buffer → MXU -->
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 2px;
+                    padding: 0 4px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 9px;
+                      color: #39ff8a;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      white-space: nowrap;
+                    "
+                  >
+                    weights ↘
+                  </div>
+                  <div style="font-size: 18px; color: #00e5ff">→</div>
+                  <div
+                    style="
+                      font-size: 9px;
+                      color: #00e5ff;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      white-space: nowrap;
+                    "
+                  >
+                    activations →
+                  </div>
+                </div>
+
+                <!-- MXU -->
+                <div
+                  class="dp-card"
+                  style="
+                    border-color: #00e5ff;
+                    border-width: 2px;
+                    min-width: 100px;
+                    padding: 14px 10px;
+                    position: relative;
+                    background: linear-gradient(135deg, #061420, #0a1f30);
+                  "
+                  title="Matrix Multiply Unit — the heart of the TPU. 256×256 grid of multiply-accumulate units, all firing in parallel every clock cycle using a systolic array design"
+                >
+                  <div
+                    style="
+                      position: absolute;
+                      top: -10px;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      background: #00e5ff;
+                      color: #001020;
+                      font-size: 8px;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      padding: 1px 6px;
+                      border-radius: 3px;
+                      white-space: nowrap;
+                    "
+                  >
+                    CORE ENGINE
+                  </div>
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #00e5ff;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      text-align: center;
+                    "
+                  >
+                    MXU
+                  </div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: #8fa8c0;
+                      text-align: center;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                    "
+                  >
+                    256 × 256
+                  </div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: #39ff8a;
+                      text-align: center;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      margin-top: 2px;
+                    "
+                  >
+                    65,536 MAC/clk
+                  </div>
+                  <div
+                    class="dp-tag"
+                    style="
+                      background: #39ff8a22;
+                      color: #39ff8a;
+                      margin-top: 6px;
+                    "
+                  >
+                    Systolic Array
+                  </div>
+                </div>
+
+                <!-- ARROW: MXU → Accum -->
+                <div style="font-size: 18px; color: #ffb400; padding: 0 4px">
+                  →
+                </div>
+
+                <!-- ACCUM -->
+                <div
+                  class="dp-card"
+                  style="border-color: #ffb400; padding: 8px 10px"
+                  title="4 MB of INT32 accumulator SRAM. Sums up the partial products from each MXU column before passing them on"
+                >
+                  <div class="dp-label" style="color: #ffb400">Accum.</div>
+                  <div class="dp-sub">4 MB<br />INT32</div>
+                  <div
+                    class="dp-tag"
+                    style="background: #ffb40022; color: #ffb400"
+                  >
+                    Σ sums
+                  </div>
+                </div>
+
+                <!-- ARROW: Accum → Act -->
+                <div style="font-size: 18px; color: #a78bfa; padding: 0 4px">
+                  →
+                </div>
+
+                <!-- ACTIVATION PIPE -->
+                <div
+                  class="dp-card"
+                  style="border-color: #a78bfa; padding: 8px 10px"
+                  title="Applies non-linear activation functions (ReLU, sigmoid, etc.) to the accumulated INT32 values and converts back to INT8"
+                >
+                  <div class="dp-label" style="color: #a78bfa">Act.</div>
+                  <div class="dp-label" style="color: #a78bfa">Pipe</div>
+                  <div class="dp-sub">ReLU / sigmoid<br />→ INT8</div>
+                </div>
+              </div>
+
+              <!-- Loop-back arrow -->
+              <div
+                style="
+                  margin-top: 8px;
+                  padding: 6px 8px;
+                  border: 1px dashed #1e3a5a;
+                  border-radius: 6px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  background: #04080f;
+                "
+              >
+                <span
+                  style="
+                    font-size: 9px;
+                    color: #5a7a9e;
+                    font-family: &quot;JetBrains Mono&quot;, monospace;
+                  "
+                  >↩ output → Unified Buffer → fed as input for
+                  <strong style="color: #00e5ff">next layer</strong></span
+                >
+              </div>
+            </div>
+
+            <!-- DRAM (off to the side) -->
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-left: 8px;
+              "
+            >
+              <div
+                class="dp-card"
+                style="
+                  border-color: #2a5075;
+                  min-width: 72px;
+                  padding: 8px 10px;
+                "
+                title="8 GB off-chip DDR DRAM at 34 GB/s. Weights are pre-streamed into the Weight FIFO before computation. The TPU tries to never access DRAM during computation"
+              >
+                <div class="dp-icon" style="font-size: 14px; color: #5a7a9e">
+                  💾
+                </div>
+                <div class="dp-label" style="color: #5a7a9e">DRAM</div>
+                <div class="dp-sub">8 GB<br />34 GB/s</div>
+                <div
+                  class="dp-tag"
+                  style="background: #1e3a5a44; color: #5a7a9e"
+                >
+                  Off-chip
+                </div>
+              </div>
+              <div
+                style="
+                  font-size: 9px;
+                  color: #2a5075;
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  margin-top: 4px;
+                  text-align: center;
+                "
+              >
+                weights<br />preloaded ↑
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom annotation cards -->
+          <div class="two-col" style="margin-top: 12px; gap: 8px">
+            <div class="prose-card" style="border-color: #00e5ff">
+              <h3 style="color: #00e5ff">① Unified Buffer — No DRAM Stalls</h3>
+              <p>
+                28 MB on-chip SRAM stores <em>all</em> layer activations. While
+                the MXU computes, data never leaves the chip. DRAM is only
+                accessed <em>between</em> layers.
               </p>
             </div>
-            <div class="prose-card">
-              <h3>Why It's Hardware-Friendly</h3>
-              <ul>
-                <li>Weight matrix is read-only at inference</li>
-                <li>No data-dependent branching</li>
-                <li>Fully pipelineable pattern</li>
-                <li>FP32 training → <span class="hl2">INT8 inference</span></li>
-                <li>All ops reduce to: <code>acc += a × b</code></li>
-              </ul>
+            <div class="prose-card" style="border-color: #39ff8a">
+              <h3 style="color: #39ff8a">
+                ② Systolic Array — Data Flows Like Waves
+              </h3>
+              <p>
+                Each PE (processing element) multiplies and passes its result to
+                the next — like dominoes.
+                <span class="hl">No memory reads</span> between steps. Maximally
+                efficient at 65,536 ops/cycle.
+              </p>
             </div>
-            <div class="pipeline" style="margin:0">
-              <div class="ps hi">
-                <div class="ps-sub">Input</div>
-                <div class="ps-name">Embed</div>
-              </div>
-              <div class="arr">→</div>
-              <div class="ps hi2">
-                <div class="ps-sub">Attn</div>
-                <div class="ps-name">Q·K·V</div>
-              </div>
-              <div class="arr">→</div>
-              <div class="ps hi2">
-                <div class="ps-sub">FFN</div>
-                <div class="ps-name">W₁·x</div>
-              </div>
-              <div class="arr">→</div>
-              <div class="ps">
-                <div class="ps-sub">Out</div>
-                <div class="ps-name">Proj.</div>
-              </div>
+            <div class="prose-card" style="border-color: #ffb400">
+              <h3 style="color: #ffb400">
+                ③ CISC ISA — One Instruction, Millions of Ops
+              </h3>
+              <p>
+                A single <code>MatMul</code> macro-instruction fires
+                <span class="hl3">all 65,536 MACs</span> in parallel. The CPU
+                issues very few instructions. Minimal control overhead.
+              </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ S3: SYSTOLIC ARRAY ══ -->
-      <div class="slide" id="s3">
-        <div class="stag">03 · Core Hardware Design</div>
-        <h2>The Systolic Array — Eliminating the Memory Bottleneck</h2>
-        <div class="two-col">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="prose-card">
-              <h3>What Is a Systolic Array?</h3>
-              <p>A 2D grid of <strong style="color:var(--heading)">Processing Elements (PEs)</strong>. Data pulses like
-                a heartbeat. Weights are <span class="hl">pre-loaded and stationary</span> — only activations stream
-                through. Zero memory-bus round-trips between MACs.</p>
-            </div>
-            <div class="prose-card">
-              <h3>TPU v1 MXU: 256 × 256</h3>
-              <ul>
-                <li>Grid: <span class="hl">256 rows × 256 cols</span> of PEs</li>
-                <li>Each PE: <code>acc += weight × activation</code></li>
-                <li>MACs/cycle: <span class="hl2">65,536 simultaneously</span></li>
-                <li>Activations flow right →, partial sums ↓</li>
-                <li>Clock: ~700 MHz → <span class="hl">92 TOPS</span> peak</li>
-              </ul>
-            </div>
-            <div class="diag-wrap" style="margin:0;padding:12px">
-              <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:180px">
-                <text x="160" y="14" fill="#5a7a9e" font-size="11" text-anchor="middle" font-family="JetBrains Mono">4×4
-                  SYSTOLIC ARRAY (TPU v1 = 256×256)</text>
-                <text x="60" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
-                  font-family="JetBrains Mono">a₀↓</text>
-                <text x="120" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
-                  font-family="JetBrains Mono">a₁↓</text>
-                <text x="180" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
-                  font-family="JetBrains Mono">a₂↓</text>
-                <text x="240" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
-                  font-family="JetBrains Mono">a₃↓</text>
-                <text x="2" y="59" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₀→</text>
-                <text x="2" y="103" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₁→</text>
-                <text x="2" y="147" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₂→</text>
-                <rect x="35" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#00e5ff" stroke-width="1.5" />
-                <text x="60" y="59" fill="#00e5ff" font-size="12" text-anchor="middle" font-weight="600"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="120" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="180" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="240" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="35" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="60" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="120" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="180" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="240" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="35" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="60" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="120" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="180" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="240" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
-                  font-family="JetBrains Mono">PE</text>
-                <text x="273" y="59" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₀</text>
-                <text x="273" y="103" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₁</text>
-                <text x="273" y="147" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₂</text>
-              </svg>
+            <div class="prose-card" style="border-color: #a78bfa">
+              <h3 style="color: #a78bfa">④ Activation Pipe — INT8 Output</h3>
+              <p>
+                After accumulation in INT32, the activation pipeline applies the
+                non-linearity and requantizes back to
+                <span class="hl2">INT8</span> for the next layer — keeping
+                everything tight and fast.
+              </p>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="img-panel" style="flex:1;min-height:200px">
-              <div class="img-badge">SILICON WAFER</div>
-              <img src="/assets/chip.jpg" crossorigin="anonymous" onerror="imgErr(this)"
-                alt="Silicon wafer with microchips" style="flex:1;min-height:160px">
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ══ S4: FULL CHIP ══ -->
-      <div class="slide" id="s4">
-        <div class="stag">04 · TPU v1 Chip Architecture</div>
-        <h2>Complete Hardware Data Path</h2>
+          <style>
+            .dp-card {
+              border: 1px solid #1e3a5a;
+              border-radius: 8px;
+              padding: 10px 12px;
+              background: #0a1929;
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              cursor: default;
+              transition:
+                transform 0.15s,
+                box-shadow 0.15s;
+            }
 
-        <!-- Legend -->
-        <div
-          style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-family:'JetBrains Mono',monospace">
-          <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#00e5ff;border-radius:2px"></span> Activation
-            data</span>
-          <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#39ff8a;border-radius:2px;border-style:dashed;border-width:0 0 2px 0;background:none;border-color:#39ff8a;border-bottom:2px dashed #39ff8a"></span>
-            Weights (preloaded)</span>
-          <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#ffb400;border-radius:2px"></span>
-            Accumulated result</span>
-          <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#a78bfa;border-radius:2px"></span> Activation
-            function</span>
-          <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#5a7a9e;border-radius:2px;border-bottom:2px dashed #5a7a9e;border-width:0 0 2px 0;background:none"></span>
-            Output loop-back</span>
+            .dp-card:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 18px #00000060;
+            }
+
+            .dp-icon {
+              font-size: 16px;
+              text-align: center;
+            }
+
+            .dp-label {
+              font-size: 12px;
+              font-family: "JetBrains Mono", monospace;
+              font-weight: 700;
+            }
+
+            .dp-sub {
+              font-size: 9px;
+              color: #5a7a9e;
+              font-family: "JetBrains Mono", monospace;
+              line-height: 1.4;
+            }
+
+            .dp-tag {
+              font-size: 8px;
+              font-family: "JetBrains Mono", monospace;
+              padding: 2px 5px;
+              border-radius: 3px;
+              margin-top: 4px;
+              display: inline-block;
+            }
+
+            .dp-arrow {
+              display: flex;
+              align-items: center;
+              padding: 0 4px;
+              flex-shrink: 0;
+            }
+
+            .dp-arrow-cyan .dp-arrow-line {
+              width: 24px;
+              height: 2px;
+              background: #00e5ff;
+            }
+
+            .dp-arrow-cyan .dp-arrow-head {
+              color: #00e5ff;
+              font-size: 14px;
+              margin-left: -2px;
+            }
+
+            .dp-arrow-cyan .dp-arrow-label {
+              font-size: 8px;
+              color: #2a5075;
+              font-family: "JetBrains Mono", monospace;
+              writing-mode: vertical-rl;
+              transform: rotate(180deg);
+              margin: 0 3px;
+            }
+          </style>
         </div>
 
-        <!-- Main data flow diagram -->
-        <div style="align-items:center;gap:0;width:100%;display: flex;">
-
-          <!-- HOST CPU -->
-          <div class="dp-card" style="border-color:#5a7a9e;min-width:88px"
-            title="x86 server CPU that issues instructions to the TPU over PCIe">
-            <div class="dp-icon" style="color:#5a7a9e">🖥️</div>
-            <div class="dp-label" style="color:#8fa8c0">Host CPU</div>
-            <div class="dp-sub">x86 server<br>issues ops</div>
-            <div class="dp-tag" style="background:#5a7a9e22;color:#5a7a9e">External</div>
-          </div>
-
-          <div class="dp-arrow dp-arrow-cyan">
-            <div class="dp-arrow-line"></div>
-            <div class="dp-arrow-label">PCIe ×16</div>
-            <div class="dp-arrow-head">▶</div>
-          </div>
-
-          <!-- ON-CHIP BOUNDARY -->
-          <div
-            style="flex:1;border:1.5px dashed #1e3a5a;border-radius:12px;padding:12px 8px;background:#06101e;min-width:440px;position:relative">
-            <div
-              style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#06101e;padding:0 8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#2a5075;white-space:nowrap;letter-spacing:1px">
-              ── ON CHIP ──</div>
-
-            <div style="display:flex;align-items:center;gap:0">
-
-              <!-- LEFT BUFFERS COLUMN -->
-              <div style="display:flex;flex-direction:column;gap:6px;min-width:90px">
-
-                <div class="dp-card" style="border-color:#39ff8a;padding:8px 10px"
-                  title="Weights are preloaded from DRAM into this FIFO queue before computation starts, so the MXU never waits for weights">
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Weight</div>
-                  <div class="dp-label" style="color:#39ff8a;font-size:11px">FIFO</div>
-                  <div class="dp-sub">preloaded<br>from DRAM</div>
+        <!-- ══ S5: SPEC CHECKLIST ══ -->
+        <div class="slide" id="s5">
+          <div class="stag">05 · Product Specification Checklist</div>
+          <h2>TPU v1 Complete Hardware Specification</h2>
+          <div class="crw" style="align-items: start">
+            <div>
+              <p style="color: var(--muted); margin-bottom: 8px">
+                Source: Jouppi et al. (2017). Click to check off.
+              </p>
+              <div class="spec-list">
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">MXU array size</div>
+                  <div class="spec-val">256 × 256 PEs</div>
                 </div>
-
-                <div class="dp-card" style="border-color:#00e5ff;padding:8px 10px;position:relative"
-                  title="28 MB on-chip SRAM. Stores all layer activations so computation never has to wait on slow DRAM">
-                  <div class="dp-label" style="color:#00e5ff">Unified Buffer</div>
-                  <div class="dp-sub" style="color:#5a7a9e">28 MB SRAM</div>
-                  <div class="dp-tag" style="background:#00e5ff22;color:#00e5ff">No DRAM penalty</div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">MACs per cycle</div>
+                  <div class="spec-val">65,536</div>
                 </div>
-
-                <div class="dp-card" style="border-color:#2a5075;padding:8px 10px"
-                  title="Holds decoded CISC macro-instructions. One MatMul op fires 65,536 MACs with no CPU overhead">
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Instr.</div>
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Buffer</div>
-                  <div class="dp-sub">CISC ops</div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Peak throughput</div>
+                  <div class="spec-val">92 TOPS</div>
                 </div>
-
-              </div>
-
-              <!-- ARROW: Buffer → MXU -->
-              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 4px">
-                <div style="font-size:9px;color:#39ff8a;font-family:'JetBrains Mono',monospace;white-space:nowrap">
-                  weights ↘</div>
-                <div style="font-size:18px;color:#00e5ff">→</div>
-                <div style="font-size:9px;color:#00e5ff;font-family:'JetBrains Mono',monospace;white-space:nowrap">
-                  activations →</div>
-              </div>
-
-              <!-- MXU -->
-              <div class="dp-card"
-                style="border-color:#00e5ff;border-width:2px;min-width:100px;padding:14px 10px;position:relative;background:linear-gradient(135deg,#061420,#0a1f30)"
-                title="Matrix Multiply Unit — the heart of the TPU. 256×256 grid of multiply-accumulate units, all firing in parallel every clock cycle using a systolic array design">
-                <div
-                  style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#00e5ff;color:#001020;font-size:8px;font-family:'JetBrains Mono',monospace;padding:1px 6px;border-radius:3px;white-space:nowrap">
-                  CORE ENGINE</div>
-                <div
-                  style="font-size:22px;font-weight:700;color:#00e5ff;font-family:'JetBrains Mono',monospace;text-align:center">
-                  MXU</div>
-                <div style="font-size:10px;color:#8fa8c0;text-align:center;font-family:'JetBrains Mono',monospace">256 ×
-                  256</div>
-                <div
-                  style="font-size:10px;color:#39ff8a;text-align:center;font-family:'JetBrains Mono',monospace;margin-top:2px">
-                  65,536 MAC/clk</div>
-                <div class="dp-tag" style="background:#39ff8a22;color:#39ff8a;margin-top:6px">Systolic Array</div>
-              </div>
-
-              <!-- ARROW: MXU → Accum -->
-              <div style="font-size:18px;color:#ffb400;padding:0 4px">→</div>
-
-              <!-- ACCUM -->
-              <div class="dp-card" style="border-color:#ffb400;padding:8px 10px"
-                title="4 MB of INT32 accumulator SRAM. Sums up the partial products from each MXU column before passing them on">
-                <div class="dp-label" style="color:#ffb400">Accum.</div>
-                <div class="dp-sub">4 MB<br>INT32</div>
-                <div class="dp-tag" style="background:#ffb40022;color:#ffb400">Σ sums</div>
-              </div>
-
-              <!-- ARROW: Accum → Act -->
-              <div style="font-size:18px;color:#a78bfa;padding:0 4px">→</div>
-
-              <!-- ACTIVATION PIPE -->
-              <div class="dp-card" style="border-color:#a78bfa;padding:8px 10px"
-                title="Applies non-linear activation functions (ReLU, sigmoid, etc.) to the accumulated INT32 values and converts back to INT8">
-                <div class="dp-label" style="color:#a78bfa">Act.</div>
-                <div class="dp-label" style="color:#a78bfa">Pipe</div>
-                <div class="dp-sub">ReLU / sigmoid<br>→ INT8</div>
-              </div>
-
-            </div>
-
-            <!-- Loop-back arrow -->
-            <div
-              style="margin-top:8px;padding:6px 8px;border:1px dashed #1e3a5a;border-radius:6px;display:flex;align-items:center;gap:8px;background:#04080f">
-              <span style="font-size:9px;color:#5a7a9e;font-family:'JetBrains Mono',monospace">↩ output → Unified Buffer
-                → fed as input for <strong style="color:#00e5ff">next layer</strong></span>
-            </div>
-          </div>
-
-          <!-- DRAM (off to the side) -->
-          <div style="display:flex;flex-direction:column;align-items:center;margin-left:8px">
-            <div class="dp-card" style="border-color:#2a5075;min-width:72px;padding:8px 10px"
-              title="8 GB off-chip DDR DRAM at 34 GB/s. Weights are pre-streamed into the Weight FIFO before computation. The TPU tries to never access DRAM during computation">
-              <div class="dp-icon" style="font-size:14px;color:#5a7a9e">💾</div>
-              <div class="dp-label" style="color:#5a7a9e">DRAM</div>
-              <div class="dp-sub">8 GB<br>34 GB/s</div>
-              <div class="dp-tag" style="background:#1e3a5a44;color:#5a7a9e">Off-chip</div>
-            </div>
-            <div
-              style="font-size:9px;color:#2a5075;font-family:'JetBrains Mono',monospace;margin-top:4px;text-align:center">
-              weights<br>preloaded ↑</div>
-          </div>
-
-        </div>
-
-        <!-- Bottom annotation cards -->
-        <div class="two-col" style="margin-top:12px;gap:8px">
-          <div class="prose-card" style="border-color:#00e5ff">
-            <h3 style="color:#00e5ff">① Unified Buffer — No DRAM Stalls</h3>
-            <p>28 MB on-chip SRAM stores <em>all</em> layer activations. While the MXU computes, data never leaves the
-              chip. DRAM is only accessed <em>between</em> layers.</p>
-          </div>
-          <div class="prose-card" style="border-color:#39ff8a">
-            <h3 style="color:#39ff8a">② Systolic Array — Data Flows Like Waves</h3>
-            <p>Each PE (processing element) multiplies and passes its result to the next — like dominoes. <span
-                class="hl">No memory reads</span> between steps. Maximally efficient at 65,536 ops/cycle.</p>
-          </div>
-          <div class="prose-card" style="border-color:#ffb400">
-            <h3 style="color:#ffb400">③ CISC ISA — One Instruction, Millions of Ops</h3>
-            <p>A single <code>MatMul</code> macro-instruction fires <span class="hl3">all 65,536 MACs</span> in
-              parallel. The CPU issues very few instructions. Minimal control overhead.</p>
-          </div>
-          <div class="prose-card" style="border-color:#a78bfa">
-            <h3 style="color:#a78bfa">④ Activation Pipe — INT8 Output</h3>
-            <p>After accumulation in INT32, the activation pipeline applies the non-linearity and requantizes back to
-              <span class="hl2">INT8</span> for the next layer — keeping everything tight and fast.
-            </p>
-          </div>
-        </div>
-
-        <style>
-          .dp-card {
-            border: 1px solid #1e3a5a;
-            border-radius: 8px;
-            padding: 10px 12px;
-            background: #0a1929;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            cursor: default;
-            transition: transform .15s, box-shadow .15s;
-          }
-
-          .dp-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 18px #00000060;
-          }
-
-          .dp-icon {
-            font-size: 16px;
-            text-align: center;
-          }
-
-          .dp-label {
-            font-size: 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-          }
-
-          .dp-sub {
-            font-size: 9px;
-            color: #5a7a9e;
-            font-family: 'JetBrains Mono', monospace;
-            line-height: 1.4;
-          }
-
-          .dp-tag {
-            font-size: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin-top: 4px;
-            display: inline-block;
-          }
-
-          .dp-arrow {
-            display: flex;
-            align-items: center;
-            padding: 0 4px;
-            flex-shrink: 0;
-          }
-
-          .dp-arrow-cyan .dp-arrow-line {
-            width: 24px;
-            height: 2px;
-            background: #00e5ff;
-          }
-
-          .dp-arrow-cyan .dp-arrow-head {
-            color: #00e5ff;
-            font-size: 14px;
-            margin-left: -2px;
-          }
-
-          .dp-arrow-cyan .dp-arrow-label {
-            font-size: 8px;
-            color: #2a5075;
-            font-family: 'JetBrains Mono', monospace;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            margin: 0 3px;
-          }
-        </style>
-      </div>
-
-      <!-- ══ S5: SPEC CHECKLIST ══ -->
-      <div class="slide" id="s5">
-        <div class="stag">05 · Product Specification Checklist</div>
-        <h2>TPU v1 Complete Hardware Specification</h2>
-        <div class="crw" style="align-items:start">
-          <div>
-            <p style="color:var(--muted);margin-bottom:8px">Source: Jouppi et al. (2017). Click to check off.</p>
-            <div class="spec-list">
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">MXU array size</div>
-                <div class="spec-val">256 × 256 PEs</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">MACs per cycle</div>
-                <div class="spec-val">65,536</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Peak throughput</div>
-                <div class="spec-val">92 TOPS</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Unified Buffer SRAM</div>
-                <div class="spec-val">28 MB</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Accumulator SRAM</div>
-                <div class="spec-val">4 MB (INT32)</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">DRAM capacity</div>
-                <div class="spec-val">8 GB</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Memory bandwidth</div>
-                <div class="spec-val">34 GB/s</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Numeric precision</div>
-                <div class="spec-val">INT8 inference</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Host interface</div>
-                <div class="spec-val">PCIe x16</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Clock speed</div>
-                <div class="spec-val">~700 MHz</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Power (TDP)</div>
-                <div class="spec-val">~75 W</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Fabrication node</div>
-                <div class="spec-val">28nm TSMC</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">ISA type</div>
-                <div class="spec-val">CISC macro-ops</div>
-              </div>
-              <div class="spec-item" onclick="tog(this)">
-                <div class="chk on">✓</div>
-                <div class="spec-label">Deployment year</div>
-                <div class="spec-val">2015 (internal)</div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Unified Buffer SRAM</div>
+                  <div class="spec-val">28 MB</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Accumulator SRAM</div>
+                  <div class="spec-val">4 MB (INT32)</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">DRAM capacity</div>
+                  <div class="spec-val">8 GB</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Memory bandwidth</div>
+                  <div class="spec-val">34 GB/s</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Numeric precision</div>
+                  <div class="spec-val">INT8 inference</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Host interface</div>
+                  <div class="spec-val">PCIe x16</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Clock speed</div>
+                  <div class="spec-val">~700 MHz</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Power (TDP)</div>
+                  <div class="spec-val">~75 W</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Fabrication node</div>
+                  <div class="spec-val">28nm TSMC</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">ISA type</div>
+                  <div class="spec-val">CISC macro-ops</div>
+                </div>
+                <div class="spec-item" onclick="tog(this)">
+                  <div class="chk on">✓</div>
+                  <div class="spec-label">Deployment year</div>
+                  <div class="spec-val">2015 (internal)</div>
+                </div>
               </div>
             </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="img-panel" style="flex:1;min-height:200px">
-              <div class="img-badge">TPU DEEP DIVE</div>
-              <img src="/assets/tpuv1.jpg" crossorigin="anonymous" onerror="imgErr(this)" alt="TPU deep dive video"
-                style="flex:1;min-height:160px;object-fit:cover">
-
-            </div>
-            <div class="prose-card" style="border-color:var(--amber)">
-              <h3 style="color:var(--amber)">Key Trade-off</h3>
-              <p>INT8 only = inference-only. Smaller die, 75W. Training done on GPUs. <span class="hl3">Intentional
-                  co-design</span> with GNMT quantization.</p>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="img-panel" style="flex: 1; min-height: 200px">
+                <div class="img-badge">TPU DEEP DIVE</div>
+                <img
+                  src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/tpuv1.jpg"
+                  crossorigin="anonymous"
+                  onerror="imgErr(this)"
+                  alt="TPU deep dive video"
+                  style="flex: 1; min-height: 160px; object-fit: cover"
+                />
+              </div>
+              <div class="prose-card" style="border-color: var(--amber)">
+                <h3 style="color: var(--amber)">Key Trade-off</h3>
+                <p>
+                  INT8 only = inference-only. Smaller die, 75W. Training done on
+                  GPUs. <span class="hl3">Intentional co-design</span> with GNMT
+                  quantization.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ══ S6: GENERATIONS ══ -->
-      <div class="slide" id="s6">
-        <div class="stag">06 · Architectural Evolution</div>
-        <h2>TPU v1 → v4: Each Generation Driven by NMT Scale</h2>
-        <div class="tab-row">
-          <button class="tab-btn on" onclick="switchTab('gen','v1',this)">v1 · 2015</button>
-          <button class="tab-btn" onclick="switchTab('gen','v2',this)">v2 · 2017</button>
-          <button class="tab-btn" onclick="switchTab('gen','v3',this)">v3 · 2018</button>
-          <button class="tab-btn" onclick="switchTab('gen','v4',this)">v4 · 2021</button>
-        </div>
-        <div id="gen-v1" class="tab-panel on">
-          <div class="two-col" style="gap:8px;margin:0">
-            <div class="prose-card">
-              <h3>v1 Specs</h3>
-              <ul>
-                <li>Peak: <span class="hl">92 TOPS</span> (INT8)</li>
-                <li>Memory: 28 MB SRAM + 8 GB DRAM</li>
-                <li>Precision: INT8 only</li>
-                <li>Mode: Inference only</li>
-                <li>Power: ~75 W · PCIe x16</li>
-              </ul>
-            </div>
-            <div class="prose-card">
-              <h3>Design Rationale</h3>
-              <p>Built for GNMT inference latency. INT8 quantization preserved quality. No backprop — keeps chip simple.
-                Built in just 15 months by a small team.</p>
-            </div>
+        <!-- ══ S6: GENERATIONS ══ -->
+        <div class="slide" id="s6">
+          <div class="stag">06 · Architectural Evolution</div>
+          <h2>TPU v1 → v4: Each Generation Driven by NMT Scale</h2>
+          <div class="tab-row">
+            <button class="tab-btn on" onclick="switchTab('gen', 'v1', this)">
+              v1 · 2015
+            </button>
+            <button class="tab-btn" onclick="switchTab('gen', 'v2', this)">
+              v2 · 2017
+            </button>
+            <button class="tab-btn" onclick="switchTab('gen', 'v3', this)">
+              v3 · 2018
+            </button>
+            <button class="tab-btn" onclick="switchTab('gen', 'v4', this)">
+              v4 · 2021
+            </button>
           </div>
-        </div>
-        <div id="gen-v2" class="tab-panel">
-          <div class="two-col" style="gap:8px;margin:0">
-            <div class="prose-card">
-              <h3>v2 Specs</h3>
-              <ul>
-                <li>Peak: <span class="hl2">180 TFLOPS</span></li>
-                <li>Memory: 8 GB HBM</li>
-                <li>Precision: BF16/FP32</li>
-                <li>Mode: Train + Inference</li>
-                <li>New: ICI inter-chip link</li>
-              </ul>
-            </div>
-            <div class="prose-card">
-              <h3>BF16 Innovation</h3>
-              <p>Google invented <span class="hl2">Brain Float 16</span> — FP32 exponent range with 7-bit mantissa.
-                Avoids NaN during backprop at half FP32 memory. Now an industry standard.</p>
-            </div>
-          </div>
-        </div>
-        <div id="gen-v3" class="tab-panel">
-          <div class="two-col" style="gap:8px;margin:0">
-            <div class="prose-card">
-              <h3>v3 Specs</h3>
-              <ul>
-                <li>Peak: <span class="hl3">420 TFLOPS/chip</span></li>
-                <li>Memory: 32 GB HBM</li>
-                <li>Pod: 1,024 chips = <span class="hl3">100+ PFLOPS</span></li>
-                <li>New: Liquid cooling</li>
-              </ul>
-            </div>
-            <div class="prose-card">
-              <h3>Pod Scale</h3>
-              <p>Scaling laws → bigger models = better NMT. v3 Pods trained <span class="hl3">100B+ parameter</span>
-                multilingual models enabling zero-shot translation between unseen language pairs.</p>
-            </div>
-          </div>
-        </div>
-        <div id="gen-v4" class="tab-panel">
-          <div class="two-col" style="gap:8px;margin:0">
-            <div class="prose-card">
-              <h3>v4 Specs</h3>
-              <ul>
-                <li>Peak: <span class="hlp">275 TFLOPS/chip</span></li>
-                <li>Memory: 32 GB HBM</li>
-                <li>Pod: 4,096 chips</li>
-                <li>Topology: <span class="hlp">3D torus</span> — 6 ICI links/chip</li>
-              </ul>
-            </div>
-            <div class="prose-card">
-              <h3>3D Torus Network</h3>
-              <p>Each chip connects to 6 neighbors in 3D torus. Minimizes all-reduce latency across 4,096 chips.
-                Topology co-designed with model parallelism. Powers Gemini, Bard.</p>
-            </div>
-          </div>
-        </div>
-        <div class="img-panel" style="margin-top:8px;">
-          <img src="/assets/tpuv.png" crossorigin="anonymous" onerror="imgErr(this)" alt="TPU v1 and v2 side by side"
-            style="width:100%;height:auto;object-fit:contain;display:block;">
-        </div>
-      </div>
-
-      <!-- ══ S7: PERFORMANCE ══ -->
-      <div class="slide" id="s7">
-        <div class="stag">07 · Performance Analysis</div>
-        <h2>CPU vs GPU vs TPU — Quantitative Comparison</h2>
-        <div class="clw">
-          <div>
-            <p style="color:var(--muted);margin-bottom:10px">Performance/watt (CPU=1×) · NMT inference · Jouppi et al.
-              2017</p>
-            <div class="bar-row"><span class="bar-label" style="color:var(--muted)">CPU</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:1.2%;background:#334155;color:var(--muted)">1×</div>
-              </div><span class="bar-end" style="color:var(--muted)">baseline</span>
-            </div>
-            <div class="bar-row"><span class="bar-label" style="color:var(--amber)">GPU K80</span>
-              <div class="bar-track">
-                <div class="bar-fill" id="b1" style="width:1%;background:#78350f;color:var(--amber)"></div>
-              </div><span class="bar-end" style="color:var(--amber)">41×</span>
-            </div>
-            <div class="bar-row"><span class="bar-label" style="color:var(--cyan)">TPU v1</span>
-              <div class="bar-track">
-                <div class="bar-fill" id="b2" style="width:1%;background:#0c4a6e;color:var(--cyan)"></div>
-              </div><span class="bar-end" style="color:var(--cyan)">83×</span>
-            </div>
-            <div class="two-col" style="margin-top:10px;gap:8px">
+          <div id="gen-v1" class="tab-panel on">
+            <div class="two-col" style="gap: 8px; margin: 0">
               <div class="prose-card">
-                <h3>Why TPU Wins</h3>
+                <h3>v1 Specs</h3>
                 <ul>
-                  <li>Weights stationary — zero DRAM reloads</li>
-                  <li>INT8 = <span class="hl">4× less memory traffic</span></li>
-                  <li>75W vs GPU 200W+ same task</li>
+                  <li>Peak: <span class="hl">92 TOPS</span> (INT8)</li>
+                  <li>Memory: 28 MB SRAM + 8 GB DRAM</li>
+                  <li>Precision: INT8 only</li>
+                  <li>Mode: Inference only</li>
+                  <li>Power: ~75 W · PCIe x16</li>
                 </ul>
               </div>
               <div class="prose-card">
-                <h3>TPU Limits</h3>
+                <h3>Design Rationale</h3>
+                <p>
+                  Built for GNMT inference latency. INT8 quantization preserved
+                  quality. No backprop — keeps chip simple. Built in just 15
+                  months by a small team.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div id="gen-v2" class="tab-panel">
+            <div class="two-col" style="gap: 8px; margin: 0">
+              <div class="prose-card">
+                <h3>v2 Specs</h3>
                 <ul>
-                  <li style="color:var(--pink)">No training (v1)</li>
-                  <li style="color:var(--pink)">Poor small batches</li>
-                  <li style="color:var(--pink)">No CUDA ecosystem</li>
+                  <li>Peak: <span class="hl2">180 TFLOPS</span></li>
+                  <li>Memory: 8 GB HBM</li>
+                  <li>Precision: BF16/FP32</li>
+                  <li>Mode: Train + Inference</li>
+                  <li>New: ICI inter-chip link</li>
                 </ul>
               </div>
+              <div class="prose-card">
+                <h3>BF16 Innovation</h3>
+                <p>
+                  Google invented <span class="hl2">Brain Float 16</span> — FP32
+                  exponent range with 7-bit mantissa. Avoids NaN during backprop
+                  at half FP32 memory. Now an industry standard.
+                </p>
+              </div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="three-col" style="margin:0;gap:8px">
-              <div class="prose-card" style="text-align:center;padding:10px">
-                <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">CPU</div>
-                <div style="font-size:13px;color:var(--body-text);line-height:1.9">~20 cores<br>FP64/32<br>~100W</div>
+          <div id="gen-v3" class="tab-panel">
+            <div class="two-col" style="gap: 8px; margin: 0">
+              <div class="prose-card">
+                <h3>v3 Specs</h3>
+                <ul>
+                  <li>Peak: <span class="hl3">420 TFLOPS/chip</span></li>
+                  <li>Memory: 32 GB HBM</li>
+                  <li>
+                    Pod: 1,024 chips = <span class="hl3">100+ PFLOPS</span>
+                  </li>
+                  <li>New: Liquid cooling</li>
+                </ul>
               </div>
-              <div class="prose-card" style="text-align:center;padding:10px;border-color:var(--amber)">
-                <div style="font-size:10px;color:var(--amber);margin-bottom:4px;font-family:var(--mono)">GPU K80</div>
-                <div style="font-size:13px;color:var(--body-text);line-height:1.9">3K cores<br>FP32<br>~200W</div>
-              </div>
-              <div class="prose-card" style="text-align:center;padding:10px;border-color:var(--cyan)">
-                <div style="font-size:10px;color:var(--cyan);margin-bottom:4px;font-family:var(--mono)">TPU v1</div>
-                <div style="font-size:13px;color:var(--body-text);line-height:1.9">65K MAC<br>INT8<br>~75W</div>
+              <div class="prose-card">
+                <h3>Pod Scale</h3>
+                <p>
+                  Scaling laws → bigger models = better NMT. v3 Pods trained
+                  <span class="hl3">100B+ parameter</span> multilingual models
+                  enabling zero-shot translation between unseen language pairs.
+                </p>
               </div>
             </div>
-            <div class="img-panel" style="flex:1;min-height:130px">
-              <div class="img-badge">AI CHIP COMPARISON</div>
-              <img src="/assets/s-v-t.jpg" crossorigin="anonymous" onerror="imgErr(this)"
-                alt="AI chip performance comparison" style="flex:1;min-height:100px">
+          </div>
+          <div id="gen-v4" class="tab-panel">
+            <div class="two-col" style="gap: 8px; margin: 0">
+              <div class="prose-card">
+                <h3>v4 Specs</h3>
+                <ul>
+                  <li>Peak: <span class="hlp">275 TFLOPS/chip</span></li>
+                  <li>Memory: 32 GB HBM</li>
+                  <li>Pod: 4,096 chips</li>
+                  <li>
+                    Topology: <span class="hlp">3D torus</span> — 6 ICI
+                    links/chip
+                  </li>
+                </ul>
+              </div>
+              <div class="prose-card">
+                <h3>3D Torus Network</h3>
+                <p>
+                  Each chip connects to 6 neighbors in 3D torus. Minimizes
+                  all-reduce latency across 4,096 chips. Topology co-designed
+                  with model parallelism. Powers Gemini, Bard.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="img-panel" style="margin-top: 8px">
+            <img
+              src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/tpuv.png"
+              crossorigin="anonymous"
+              onerror="imgErr(this)"
+              alt="TPU v1 and v2 side by side"
+              style="
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                display: block;
+              "
+            />
+          </div>
+        </div>
 
+        <!-- ══ S7: PERFORMANCE ══ -->
+        <div class="slide" id="s7">
+          <div class="stag">07 · Performance Analysis</div>
+          <h2>CPU vs GPU vs TPU — Quantitative Comparison</h2>
+          <div class="clw">
+            <div>
+              <p style="color: var(--muted); margin-bottom: 10px">
+                Performance/watt (CPU=1×) · NMT inference · Jouppi et al. 2017
+              </p>
+              <div class="bar-row">
+                <span class="bar-label" style="color: var(--muted)">CPU</span>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    style="
+                      width: 1.2%;
+                      background: #334155;
+                      color: var(--muted);
+                    "
+                  >
+                    1×
+                  </div>
+                </div>
+                <span class="bar-end" style="color: var(--muted)"
+                  >baseline</span
+                >
+              </div>
+              <div class="bar-row">
+                <span class="bar-label" style="color: var(--amber)"
+                  >GPU K80</span
+                >
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    id="b1"
+                    style="width: 1%; background: #78350f; color: var(--amber)"
+                  ></div>
+                </div>
+                <span class="bar-end" style="color: var(--amber)">41×</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label" style="color: var(--cyan)">TPU v1</span>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    id="b2"
+                    style="width: 1%; background: #0c4a6e; color: var(--cyan)"
+                  ></div>
+                </div>
+                <span class="bar-end" style="color: var(--cyan)">83×</span>
+              </div>
+              <div class="two-col" style="margin-top: 10px; gap: 8px">
+                <div class="prose-card">
+                  <h3>Why TPU Wins</h3>
+                  <ul>
+                    <li>Weights stationary — zero DRAM reloads</li>
+                    <li>
+                      INT8 = <span class="hl">4× less memory traffic</span>
+                    </li>
+                    <li>75W vs GPU 200W+ same task</li>
+                  </ul>
+                </div>
+                <div class="prose-card">
+                  <h3>TPU Limits</h3>
+                  <ul>
+                    <li style="color: var(--pink)">No training (v1)</li>
+                    <li style="color: var(--pink)">Poor small batches</li>
+                    <li style="color: var(--pink)">No CUDA ecosystem</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="three-col" style="margin: 0; gap: 8px">
+                <div
+                  class="prose-card"
+                  style="text-align: center; padding: 10px"
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--muted);
+                      margin-bottom: 4px;
+                      font-family: var(--mono);
+                    "
+                  >
+                    CPU
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--body-text);
+                      line-height: 1.9;
+                    "
+                  >
+                    ~20 cores<br />FP64/32<br />~100W
+                  </div>
+                </div>
+                <div
+                  class="prose-card"
+                  style="
+                    text-align: center;
+                    padding: 10px;
+                    border-color: var(--amber);
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--amber);
+                      margin-bottom: 4px;
+                      font-family: var(--mono);
+                    "
+                  >
+                    GPU K80
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--body-text);
+                      line-height: 1.9;
+                    "
+                  >
+                    3K cores<br />FP32<br />~200W
+                  </div>
+                </div>
+                <div
+                  class="prose-card"
+                  style="
+                    text-align: center;
+                    padding: 10px;
+                    border-color: var(--cyan);
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--cyan);
+                      margin-bottom: 4px;
+                      font-family: var(--mono);
+                    "
+                  >
+                    TPU v1
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--body-text);
+                      line-height: 1.9;
+                    "
+                  >
+                    65K MAC<br />INT8<br />~75W
+                  </div>
+                </div>
+              </div>
+              <div class="img-panel" style="flex: 1; min-height: 130px">
+                <div class="img-badge">AI CHIP COMPARISON</div>
+                <img
+                  src="https://sawissac.github.io/Google-TPU-Machine-Translation/assets/s-v-t.jpg"
+                  crossorigin="anonymous"
+                  onerror="imgErr(this)"
+                  alt="AI chip performance comparison"
+                  style="flex: 1; min-height: 100px"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ══ S8: IMPACT ══ -->
-      <div class="slide" id="s8">
-        <div class="stag">08 · Production Deployment</div>
-        <h2>GNMT &amp; Real-World Impact</h2>
-        <div style="align-items:stretch">
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div class="timeline">
-              <div class="tl-item">
-                <div class="tl-dot"></div>
-                <div class="tl-year">Q1 2015</div>
-                <div class="tl-text">TPU v1 design begins — 15-month rapid development. Google Translate at 200M
-                  users/day on phrase-based.</div>
+        <!-- ══ S8: IMPACT ══ -->
+        <div class="slide" id="s8">
+          <div class="stag">08 · Production Deployment</div>
+          <h2>GNMT &amp; Real-World Impact</h2>
+          <div style="align-items: stretch">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div class="timeline">
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-year">Q1 2015</div>
+                  <div class="tl-text">
+                    TPU v1 design begins — 15-month rapid development. Google
+                    Translate at 200M users/day on phrase-based.
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-year">Q1 2016</div>
+                  <div class="tl-text">
+                    TPU v1 deployed in data centers — first production AI ASIC
+                    at hyperscale infrastructure.
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-year">Q3 2016</div>
+                  <div class="tl-text">
+                    <strong style="color: var(--heading)"
+                      >GNMT launches.</strong
+                    >
+                    Neural MT replaces phrase-based.
+                    <span class="hl2">55–85% error reduction</span>.
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-year">2018</div>
+                  <div class="tl-text">
+                    TPU v2/v3: zero-shot translation across 103 languages via
+                    Pod-trained multilingual models.
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-year">2023+</div>
+                  <div class="tl-text">
+                    TPU v4 powers Gemini, Bard — 4,096-chip pods for multimodal
+                    LLMs.
+                  </div>
+                </div>
               </div>
-              <div class="tl-item">
-                <div class="tl-dot"></div>
-                <div class="tl-year">Q1 2016</div>
-                <div class="tl-text">TPU v1 deployed in data centers — first production AI ASIC at hyperscale
-                  infrastructure.</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot"></div>
-                <div class="tl-year">Q3 2016</div>
-                <div class="tl-text"><strong style="color:var(--heading)">GNMT launches.</strong> Neural MT replaces
-                  phrase-based. <span class="hl2">55–85% error reduction</span>.</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot"></div>
-                <div class="tl-year">2018</div>
-                <div class="tl-text">TPU v2/v3: zero-shot translation across 103 languages via Pod-trained multilingual
-                  models.</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot"></div>
-                <div class="tl-year">2023+</div>
-                <div class="tl-text">TPU v4 powers Gemini, Bard — 4,096-chip pods for multimodal LLMs.</div>
-              </div>
-            </div>
-            <div class="impact-grid" style="margin:0">
-              <div class="impact-card">
-                <div class="impact-n hl">500M+</div>
-                <div class="impact-d">daily users served by TPU</div>
-              </div>
-              <div class="impact-card">
-                <div class="impact-n hl2">55–85%</div>
-                <div class="impact-d">error reduction vs phrase-based</div>
-              </div>
-              <div class="impact-card">
-                <div class="impact-n hl3">2×</div>
-                <div class="impact-d">data center capacity saved</div>
-              </div>
-              <div class="impact-card">
-                <div class="impact-n hlp">133</div>
-                <div class="impact-d">languages in Google Translate</div>
+              <div class="impact-grid" style="margin: 0">
+                <div class="impact-card">
+                  <div class="impact-n hl">500M+</div>
+                  <div class="impact-d">daily users served by TPU</div>
+                </div>
+                <div class="impact-card">
+                  <div class="impact-n hl2">55–85%</div>
+                  <div class="impact-d">error reduction vs phrase-based</div>
+                </div>
+                <div class="impact-card">
+                  <div class="impact-n hl3">2×</div>
+                  <div class="impact-d">data center capacity saved</div>
+                </div>
+                <div class="impact-card">
+                  <div class="impact-n hlp">133</div>
+                  <div class="impact-d">languages in Google Translate</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ══ S9: SUMMARY ══ -->
-      <div class="slide" id="s9">
-        <div class="stag">Summary · Q&amp;A Preparation</div>
-        <h2>Key Takeaways &amp; Anticipated Q&amp;A</h2>
-        <div style="align-items:start">
-          <div>
-            <div class="takeaway">
-              <div class="tk-num hl">01</div>
-              <div>
-                <div class="tk-title">Systolic array eliminates the von Neumann bottleneck</div>
-                <div class="tk-body">65,536 MACs fire simultaneously. Weights stay in PEs — zero bus round-trips.
-                  Memory-bandwidth-bound workload becomes compute-bound.</div>
+        <!-- ══ S9: SUMMARY ══ -->
+        <div class="slide" id="s9">
+          <div class="stag">Summary · Q&amp;A Preparation</div>
+          <h2>Key Takeaways &amp; Anticipated Q&amp;A</h2>
+          <div style="align-items: start">
+            <div>
+              <div class="takeaway">
+                <div class="tk-num hl">01</div>
+                <div>
+                  <div class="tk-title">
+                    Systolic array eliminates the von Neumann bottleneck
+                  </div>
+                  <div class="tk-body">
+                    65,536 MACs fire simultaneously. Weights stay in PEs — zero
+                    bus round-trips. Memory-bandwidth-bound workload becomes
+                    compute-bound.
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="takeaway">
-              <div class="tk-num hl2">02</div>
-              <div>
-                <div class="tk-title">Hardware–software co-design is essential</div>
-                <div class="tk-body">INT8 quantization matched exactly to the MXU. GNMT and TPU designed together —
-                  neither works optimally alone.</div>
+              <div class="takeaway">
+                <div class="tk-num hl2">02</div>
+                <div>
+                  <div class="tk-title">
+                    Hardware–software co-design is essential
+                  </div>
+                  <div class="tk-body">
+                    INT8 quantization matched exactly to the MXU. GNMT and TPU
+                    designed together — neither works optimally alone.
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="takeaway">
-              <div class="tk-num hl3">03</div>
-              <div>
-                <div class="tk-title">Domain-specific silicon dominates at scale</div>
-                <div class="tk-body">83× perf/watt vs CPU, 75W vs 200W GPU for same NMT task. Economic case is decisive
-                  at 500M-user scale.</div>
+              <div class="takeaway">
+                <div class="tk-num hl3">03</div>
+                <div>
+                  <div class="tk-title">
+                    Domain-specific silicon dominates at scale
+                  </div>
+                  <div class="tk-body">
+                    83× perf/watt vs CPU, 75W vs 200W GPU for same NMT task.
+                    Economic case is decisive at 500M-user scale.
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="takeaway" style="border-color:var(--purple)">
-              <div class="tk-num hlp">Q&A</div>
-              <div>
-                <div class="tk-title">Prep answers</div>
-                <div class="tk-body"><span class="hl">Why can't v1 train?</span> — No FP32 MXU, no gradient buffers.
-                  <span class="hl2">Weight-stationary?</span> — Weights load once, activations stream. <span
-                    class="hl3">Roofline?</span> — TPU is compute-bound, sits above memory roof.
+              <div class="takeaway" style="border-color: var(--purple)">
+                <div class="tk-num hlp">Q&A</div>
+                <div>
+                  <div class="tk-title">Prep answers</div>
+                  <div class="tk-body">
+                    <span class="hl">Why can't v1 train?</span> — No FP32 MXU,
+                    no gradient buffers.
+                    <span class="hl2">Weight-stationary?</span> — Weights load
+                    once, activations stream.
+                    <span class="hl3">Roofline?</span> — TPU is compute-bound,
+                    sits above memory roof.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <!-- area -->
 
-    </div><!-- area -->
-
-    <div class="nav">
-      <button class="nav-btn" id="prev-btn" onclick="nav(-1)" disabled>← prev</button>
-      <div class="dots" id="dots"></div>
-      <button class="nav-btn" id="next-btn" onclick="nav(1)">next →</button>
+      <div class="nav">
+        <button class="nav-btn" id="prev-btn" onclick="nav(-1)" disabled>
+          ← prev
+        </button>
+        <div class="dots" id="dots"></div>
+        <button class="nav-btn" id="next-btn" onclick="nav(1)">next →</button>
+      </div>
     </div>
-  </div>
 
-  <script>
-    const TOTAL = 10, TITLES = ['Title', 'The Problem', 'ANN Architecture', 'Systolic Array', 'Chip Architecture', 'Spec Checklist', 'Generations', 'Performance', 'Impact', 'Summary'];
-    let cur = 0;
-    const slides = Array.from(document.querySelectorAll('.slide'));
-    const dotsEl = document.getElementById('dots');
-    for (let i = 0; i < TOTAL; i++) { const d = document.createElement('div'); d.className = 'dot' + (i === 0 ? ' on' : ''); d.onclick = () => goTo(i); dotsEl.appendChild(d); }
+    <script>
+      const TOTAL = 10,
+        TITLES = [
+          "Title",
+          "The Problem",
+          "ANN Architecture",
+          "Systolic Array",
+          "Chip Architecture",
+          "Spec Checklist",
+          "Generations",
+          "Performance",
+          "Impact",
+          "Summary",
+        ];
+      let cur = 0;
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const dotsEl = document.getElementById("dots");
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement("div");
+        d.className = "dot" + (i === 0 ? " on" : "");
+        d.onclick = () => goTo(i);
+        dotsEl.appendChild(d);
+      }
 
-    function goTo(n) {
-      if (n < 0 || n >= TOTAL) return;
-      slides[cur].classList.remove('active'); slides[cur].classList.add('out');
-      setTimeout(() => slides[cur].classList.remove('out'), 400);
-      cur = n; slides[cur].classList.add('active');
-      document.getElementById('prog').style.width = ((cur + 1) / TOTAL * 100) + '%';
-      document.getElementById('tb-ctr').textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
-      document.getElementById('tb-title').textContent = TITLES[cur];
-      document.getElementById('prev-btn').disabled = cur === 0;
-      document.getElementById('next-btn').disabled = cur === TOTAL - 1;
-      document.querySelectorAll('.dot').forEach((d, i) => d.className = 'dot' + (i === cur ? ' on' : ''));
-      if (cur === 7) setTimeout(animBars, 300);
-    }
-    function nav(d) { goTo(cur + d); }
-    function animBars() {
-      const b1 = document.getElementById('b1'), b2 = document.getElementById('b2');
-      if (b1) { b1.style.width = '49%'; b1.textContent = '41×'; }
-      if (b2) { b2.style.width = '99%'; b2.textContent = '83×'; }
-    }
-    function tog(el) { const c = el.querySelector('.chk'); c.classList.toggle('on'); c.textContent = c.classList.contains('on') ? '✓' : ''; }
-    function switchTab(group, id, btn) {
-      document.querySelectorAll('[id^="' + group + '-"]').forEach(p => p.className = 'tab-panel');
-      document.getElementById(group + '-' + id).className = 'tab-panel on';
-      btn.closest('.tab-row').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-    }
-    function imgErr(img) { img.closest('.img-panel').classList.add('err'); }
+      function goTo(n) {
+        if (n < 0 || n >= TOTAL) return;
+        slides[cur].classList.remove("active");
+        slides[cur].classList.add("out");
+        setTimeout(() => slides[cur].classList.remove("out"), 400);
+        cur = n;
+        slides[cur].classList.add("active");
+        document.getElementById("prog").style.width =
+          ((cur + 1) / TOTAL) * 100 + "%";
+        document.getElementById("tb-ctr").textContent =
+          String(cur + 1).padStart(2, "0") +
+          " / " +
+          String(TOTAL).padStart(2, "0");
+        document.getElementById("tb-title").textContent = TITLES[cur];
+        document.getElementById("prev-btn").disabled = cur === 0;
+        document.getElementById("next-btn").disabled = cur === TOTAL - 1;
+        document
+          .querySelectorAll(".dot")
+          .forEach((d, i) => (d.className = "dot" + (i === cur ? " on" : "")));
+        if (cur === 7) setTimeout(animBars, 300);
+      }
+      function nav(d) {
+        goTo(cur + d);
+      }
+      function animBars() {
+        const b1 = document.getElementById("b1"),
+          b2 = document.getElementById("b2");
+        if (b1) {
+          b1.style.width = "49%";
+          b1.textContent = "41×";
+        }
+        if (b2) {
+          b2.style.width = "99%";
+          b2.textContent = "83×";
+        }
+      }
+      function tog(el) {
+        const c = el.querySelector(".chk");
+        c.classList.toggle("on");
+        c.textContent = c.classList.contains("on") ? "✓" : "";
+      }
+      function switchTab(group, id, btn) {
+        document
+          .querySelectorAll('[id^="' + group + '-"]')
+          .forEach((p) => (p.className = "tab-panel"));
+        document.getElementById(group + "-" + id).className = "tab-panel on";
+        btn
+          .closest(".tab-row")
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("on"));
+        btn.classList.add("on");
+      }
+      function imgErr(img) {
+        img.closest(".img-panel").classList.add("err");
+      }
 
-    function toggleTheme() {
-      const h = document.documentElement;
-      const isLight = h.getAttribute('data-theme') === 'light';
-      h.setAttribute('data-theme', isLight ? 'dark' : 'light');
-      document.getElementById('theme-btn').textContent = isLight ? '☀ Light' : '☽ Dark';
-      try { localStorage.setItem('pres-theme', isLight ? 'dark' : 'light'); } catch (e) { }
-    }
-    function toggleFS() {
-      if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => { }); }
-      else { document.exitFullscreen(); }
-    }
+      function toggleTheme() {
+        const h = document.documentElement;
+        const isLight = h.getAttribute("data-theme") === "light";
+        h.setAttribute("data-theme", isLight ? "dark" : "light");
+        document.getElementById("theme-btn").textContent = isLight
+          ? "☀ Light"
+          : "☽ Dark";
+        try {
+          localStorage.setItem("pres-theme", isLight ? "dark" : "light");
+        } catch (e) {}
+      }
+      function toggleFS() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen();
+        }
+      }
 
-    // restore saved theme
-    try {
-      const t = localStorage.getItem('pres-theme');
-      if (t) { document.documentElement.setAttribute('data-theme', t); if (t === 'light') document.getElementById('theme-btn').textContent = '☽ Dark'; }
-    } catch (e) { }
+      // restore saved theme
+      try {
+        const t = localStorage.getItem("pres-theme");
+        if (t) {
+          document.documentElement.setAttribute("data-theme", t);
+          if (t === "light")
+            document.getElementById("theme-btn").textContent = "☽ Dark";
+        }
+      } catch (e) {}
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nav(1);
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nav(-1);
-      if (e.key === 't' || e.key === 'T') toggleTheme();
-      if (e.key === 'f' || e.key === 'F') toggleFS();
-    });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") nav(1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") nav(-1);
+        if (e.key === "t" || e.key === "T") toggleTheme();
+        if (e.key === "f" || e.key === "F") toggleFS();
+      });
 
-    /* ══════════ DEMO SYSTEM ══════════ */
+      /* ══════════ DEMO SYSTEM ══════════ */
 
-    // ─── S0: kicker count-up ───
-    function s0Animate() {
-      [{ sel: '.kicker-n.hl', end: 83, sfx: '×' }, { sel: '.kicker-n.hl2', end: 92, sfx: '' }, { sel: '.kicker-n.hl3', end: 65, sfx: 'K' }]
-        .forEach(({ sel, end, sfx }) => {
-          const el = document.querySelector('#s0 ' + sel);
-          if (!el || el._cnt) return; el._cnt = true; let v = 0;
-          const t = setInterval(() => { v = Math.min(v + end / 40, end); el.textContent = Math.floor(v) + sfx; if (v >= end) clearInterval(t); }, 20);
+      // ─── S0: kicker count-up ───
+      function s0Animate() {
+        [
+          { sel: ".kicker-n.hl", end: 83, sfx: "×" },
+          { sel: ".kicker-n.hl2", end: 92, sfx: "" },
+          { sel: ".kicker-n.hl3", end: 65, sfx: "K" },
+        ].forEach(({ sel, end, sfx }) => {
+          const el = document.querySelector("#s0 " + sel);
+          if (!el || el._cnt) return;
+          el._cnt = true;
+          let v = 0;
+          const t = setInterval(() => {
+            v = Math.min(v + end / 40, end);
+            el.textContent = Math.floor(v) + sfx;
+            if (v >= end) clearInterval(t);
+          }, 20);
         });
-    }
+      }
 
-    // ─── S1: CPU pipeline sim ───
-    let s1T = null, s1Si = 0;
-    function initS1Demo() {
-      const sl = document.getElementById('s1');
-      if (!sl || sl.querySelector('#s1-demo')) return;
-      sl.insertAdjacentHTML('beforeend', `<div class="demo-panel" id="s1-demo">
+      // ─── S1: CPU pipeline sim ───
+      let s1T = null,
+        s1Si = 0;
+      function initS1Demo() {
+        const sl = document.getElementById("s1");
+        if (!sl || sl.querySelector("#s1-demo")) return;
+        sl.insertAdjacentHTML(
+          "beforeend",
+          `<div class="demo-panel" id="s1-demo">
     <div class="demo-hdr"><span class="demo-label">⚡ CPU Bottleneck Simulator</span>
       <div class="demo-btns">
         <button class="demo-btn" onclick="s1Sim()">▶ Simulate</button>
         <button class="demo-btn dim" onclick="s1Stop()">■ Stop</button>
       </div></div>
     <div style="display:flex;align-items:center;gap:3px;margin-bottom:8px">
-      ${['Fetch Instr.', 'Bus Wait ⚡', '1× MAC', 'Bus Wait ⚡', '×10¹¹'].map((l, i) => `
+      ${["Fetch Instr.", "Bus Wait ⚡", "1× MAC", "Bus Wait ⚡", "×10¹¹"]
+        .map(
+          (l, i) => `
         <div id="pa${i}" style="flex:1;padding:7px 4px;text-align:center;background:var(--s3);border:1px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:9px;line-height:1.4;transition:all .3s">${l}</div>
-        ${i < 4 ? '<span style="color:var(--border);font-size:11px;padding:0 2px">→</span>' : ''}`).join('')}
+        ${i < 4 ? '<span style="color:var(--border);font-size:11px;padding:0 2px">→</span>' : ""}`,
+        )
+        .join("")}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div class="calc-box">
         <div style="color:var(--muted);font-size:10px;margin-bottom:4px">CPU (memory-bound)</div>
-        ${[['3 GHz clock', '→ 4 MACs/cycle peak', 'cv'],
-        ['But: DRAM fetch every MAC', '→ ~1B MACs/s real', 'rv'],
-        ['NMT sentence:', '10¹¹ MACs', 'av'],
-        ['Time/sentence:', '~100s ❌', 'rv']].map((r, i) => `
-        <div class="cr" id="s1r${i}"><span class="mv">${r[0]}</span><span class="${r[2]}">${r[1]}</span></div>`).join('')}
+        ${[
+          ["3 GHz clock", "→ 4 MACs/cycle peak", "cv"],
+          ["But: DRAM fetch every MAC", "→ ~1B MACs/s real", "rv"],
+          ["NMT sentence:", "10¹¹ MACs", "av"],
+          ["Time/sentence:", "~100s ❌", "rv"],
+        ]
+          .map(
+            (r, i) => `
+        <div class="cr" id="s1r${i}"><span class="mv">${r[0]}</span><span class="${r[2]}">${r[1]}</span></div>`,
+          )
+          .join("")}
       </div>
       <div class="calc-box">
         <div style="color:var(--green);font-size:10px;margin-bottom:4px">TPU v1 (compute-bound)</div>
-        ${[['MXU:', '65,536 MACs/cycle', 'gv'],
-        ['× 700 MHz:', '45.9 T MACs/s', 'gv'],
-        ['Weights stationary', '→ zero bus wait', 'gv'],
-        ['NMT sentence:', '< 1 ms ✓', 'gv']].map((r, i) => `
-        <div class="cr" id="s1r${i + 4}"><span class="mv">${r[0]}</span><span class="${r[2]}">${r[1]}</span></div>`).join('')}
+        ${[
+          ["MXU:", "65,536 MACs/cycle", "gv"],
+          ["× 700 MHz:", "45.9 T MACs/s", "gv"],
+          ["Weights stationary", "→ zero bus wait", "gv"],
+          ["NMT sentence:", "< 1 ms ✓", "gv"],
+        ]
+          .map(
+            (r, i) => `
+        <div class="cr" id="s1r${i + 4}"><span class="mv">${r[0]}</span><span class="${r[2]}">${r[1]}</span></div>`,
+          )
+          .join("")}
       </div>
     </div>
-  </div>`);
-    }
-    function s1Sim() {
-      if (s1T) return;
-      s1Si = 0;
-      const bots = [1, 3, 4];
-      Array.from({ length: 8 }, (_, i) => { const el = document.getElementById('s1r' + i); if (el) setTimeout(() => el.classList.add('vis'), i * 300 + 200); });
-      s1T = setInterval(() => {
-        for (let i = 0; i < 5; i++) { const el = document.getElementById('pa' + i); if (el) { el.classList.remove('pa-on', 'pa-bot'); } }
-        const el = document.getElementById('pa' + s1Si);
-        if (el) el.classList.add(bots.includes(s1Si) ? 'pa-bot' : 'pa-on');
-        s1Si = (s1Si + 1) % 5;
-      }, 550);
-    }
-    function s1Stop() { if (s1T) { clearInterval(s1T); s1T = null; } for (let i = 0; i < 5; i++) { const el = document.getElementById('pa' + i); if (el) { el.classList.remove('pa-on', 'pa-bot'); } } }
+  </div>`,
+        );
+      }
+      function s1Sim() {
+        if (s1T) return;
+        s1Si = 0;
+        const bots = [1, 3, 4];
+        Array.from({ length: 8 }, (_, i) => {
+          const el = document.getElementById("s1r" + i);
+          if (el) setTimeout(() => el.classList.add("vis"), i * 300 + 200);
+        });
+        s1T = setInterval(() => {
+          for (let i = 0; i < 5; i++) {
+            const el = document.getElementById("pa" + i);
+            if (el) {
+              el.classList.remove("pa-on", "pa-bot");
+            }
+          }
+          const el = document.getElementById("pa" + s1Si);
+          if (el) el.classList.add(bots.includes(s1Si) ? "pa-bot" : "pa-on");
+          s1Si = (s1Si + 1) % 5;
+        }, 550);
+      }
+      function s1Stop() {
+        if (s1T) {
+          clearInterval(s1T);
+          s1T = null;
+        }
+        for (let i = 0; i < 5; i++) {
+          const el = document.getElementById("pa" + i);
+          if (el) {
+            el.classList.remove("pa-on", "pa-bot");
+          }
+        }
+      }
 
-    // ─── S3: Systolic array demo ───
-    const _W = [[1, 2, 1, 0], [2, 1, 3, 1], [0, 1, 2, 3]], _A = [2, 1, 3, 2];
-    const _STEPS = [
-      { col: -1, note: 'Weights pre-loaded into all 12 PEs. They will not move.' },
-      { col: 0, note: 'Cycle 1: a₀=2 enters col 0 → 3 MACs fire simultaneously' },
-      { col: 1, note: 'Cycle 2: a₁=1 enters col 1, a₀ flows right → 6 MACs active' },
-      { col: 2, note: 'Cycle 3: a₂=3 enters col 2 → 9 MACs active' },
-      { col: 3, note: 'Cycle 4: a₃=2 enters col 3 → ALL 12 PEs computing at once!' },
-      { col: -2, note: 'Complete. y=[7,16,13]. At 256×256 scale: 65,536 MACs/cycle.' },
-    ];
-    let _sN = 0, _sT = null;
-    function initS3Demo() {
-      const sl = document.getElementById('s3');
-      if (!sl || sl.querySelector('#s3-demo')) return;
-      sl.insertAdjacentHTML('beforeend', `<div class="demo-panel" id="s3-demo">
+      // ─── S3: Systolic array demo ───
+      const _W = [
+          [1, 2, 1, 0],
+          [2, 1, 3, 1],
+          [0, 1, 2, 3],
+        ],
+        _A = [2, 1, 3, 2];
+      const _STEPS = [
+        {
+          col: -1,
+          note: "Weights pre-loaded into all 12 PEs. They will not move.",
+        },
+        {
+          col: 0,
+          note: "Cycle 1: a₀=2 enters col 0 → 3 MACs fire simultaneously",
+        },
+        {
+          col: 1,
+          note: "Cycle 2: a₁=1 enters col 1, a₀ flows right → 6 MACs active",
+        },
+        { col: 2, note: "Cycle 3: a₂=3 enters col 2 → 9 MACs active" },
+        {
+          col: 3,
+          note: "Cycle 4: a₃=2 enters col 3 → ALL 12 PEs computing at once!",
+        },
+        {
+          col: -2,
+          note: "Complete. y=[7,16,13]. At 256×256 scale: 65,536 MACs/cycle.",
+        },
+      ];
+      let _sN = 0,
+        _sT = null;
+      function initS3Demo() {
+        const sl = document.getElementById("s3");
+        if (!sl || sl.querySelector("#s3-demo")) return;
+        sl.insertAdjacentHTML(
+          "beforeend",
+          `<div class="demo-panel" id="s3-demo">
     <div class="demo-hdr"><span class="demo-label">⚡ Systolic Array — Step by Step</span>
       <div class="demo-btns">
         <button class="demo-btn" onclick="s3Next()">▶ Step</button>
@@ -2246,72 +3196,167 @@
         </div>
       </div>
     </div>
-  </div>`);
-      const g = document.getElementById('s3g');
-      _W.forEach((row, r) => row.forEach((w, c) => g.insertAdjacentHTML('beforeend',
-        `<div class="pe-d" id="s3p${r}${c}"><div style="color:var(--muted);font-size:8px">w=${w}</div><div id="s3m${r}${c}" style="font-size:9px;color:var(--body-text)">·</div></div>`)));
-    }
-    function s3Rst() {
-      _sN = 0; if (_sT) { clearInterval(_sT); _sT = null; }
-      _W.forEach((_, r) => _W[0].forEach((_, c) => {
-        const el = document.getElementById(`s3p${r}${c}`), mel = document.getElementById(`s3m${r}${c}`);
-        if (el) el.className = 'pe-d'; if (mel) { mel.textContent = '·'; mel.style.color = 'var(--body-text)'; }
-      }));
-      const ab = document.getElementById('s3ab');
-      if (ab) ab.textContent = '⚡ Auto';
-      const n = document.getElementById('s3note'); if (n) n.textContent = 'Press Step or Auto →';
-      const d = document.getElementById('s3det'); if (d) d.innerHTML = '';
-    }
-    function s3Next() {
-      if (_sN >= _STEPS.length) { s3Rst(); return; }
-      const step = _STEPS[_sN], n = document.getElementById('s3note'), d = document.getElementById('s3det');
-      if (n) n.textContent = step.note;
-      if (step.col === -1) {
-        _W.forEach((_, r) => _W[0].forEach((_, c) => { const el = document.getElementById(`s3p${r}${c}`); if (el) el.className = 'pe-d pe-load'; }));
-        if (d) d.innerHTML = `<span class="gv">✓</span> <span class="mv">12 weights loaded from Weight FIFO. Stationary now.</span>`;
-      } else if (step.col === -2) {
-        _W.forEach((_, r) => _W[0].forEach((_, c) => {
-          const el = document.getElementById(`s3p${r}${c}`), mel = document.getElementById(`s3m${r}${c}`);
-          if (el) el.className = 'pe-d pe-done';
-          if (mel && c === 3) { mel.textContent = `y=${_W[r].reduce((s, w, i) => s + w * _A[i], 0)}`; mel.style.color = 'var(--amber)'; }
-        }));
-        if (d) d.innerHTML = `<span class="gv">y = [7, 16, 13]</span><span class="mv"> computed. 256×256 MXU runs 65,536 of these in parallel every cycle.</span>`;
-      } else {
-        const col = step.col;
-        _W.forEach((_, r) => {
-          for (let c = 0; c < 4; c++) {
-            const el = document.getElementById(`s3p${r}${c}`), mel = document.getElementById(`s3m${r}${c}`);
-            if (c < col) { if (el) el.className = 'pe-d pe-done'; const acc = _W[r].slice(0, c + 1).reduce((s, w, i) => s + w * _A[i], 0); if (mel) { mel.textContent = `acc=${acc}`; mel.style.color = 'var(--amber)'; } }
-            else if (c === col) { if (el) el.className = 'pe-d pe-run'; const p = _W[r][c] * _A[c]; if (mel) { mel.textContent = `${_W[r][c]}×${_A[c]}=${p}`; mel.style.color = 'var(--cyan)'; } }
-            else { if (el && !el.classList.contains('pe-done')) el.className = 'pe-d pe-load'; if (mel && mel.textContent === '·') { mel.textContent = 'ready'; mel.style.color = 'var(--green)'; } }
-          }
-        });
-        const macs = (col + 1) * 3;
-        if (d) d.innerHTML = `<span class="cv">${macs} MACs</span><span class="mv"> firing this cycle${col === 3 ? ' — <b style="color:var(--green)">FULL THROUGHPUT</b>' : ''}  (×5461 at 256×256 scale)</span>`;
+  </div>`,
+        );
+        const g = document.getElementById("s3g");
+        _W.forEach((row, r) =>
+          row.forEach((w, c) =>
+            g.insertAdjacentHTML(
+              "beforeend",
+              `<div class="pe-d" id="s3p${r}${c}"><div style="color:var(--muted);font-size:8px">w=${w}</div><div id="s3m${r}${c}" style="font-size:9px;color:var(--body-text)">·</div></div>`,
+            ),
+          ),
+        );
       }
-      _sN++;
-    }
-    function s3Auto() {
-      const ab = document.getElementById('s3ab');
-      if (_sT) { clearInterval(_sT); _sT = null; if (ab) ab.textContent = '⚡ Auto'; return; }
-      if (ab) ab.textContent = '⏸ Pause';
-      _sT = setInterval(() => { if (_sN >= _STEPS.length) { clearInterval(_sT); _sT = null; if (ab) ab.textContent = '⚡ Auto'; return; } s3Next(); }, 900);
-    }
+      function s3Rst() {
+        _sN = 0;
+        if (_sT) {
+          clearInterval(_sT);
+          _sT = null;
+        }
+        _W.forEach((_, r) =>
+          _W[0].forEach((_, c) => {
+            const el = document.getElementById(`s3p${r}${c}`),
+              mel = document.getElementById(`s3m${r}${c}`);
+            if (el) el.className = "pe-d";
+            if (mel) {
+              mel.textContent = "·";
+              mel.style.color = "var(--body-text)";
+            }
+          }),
+        );
+        const ab = document.getElementById("s3ab");
+        if (ab) ab.textContent = "⚡ Auto";
+        const n = document.getElementById("s3note");
+        if (n) n.textContent = "Press Step or Auto →";
+        const d = document.getElementById("s3det");
+        if (d) d.innerHTML = "";
+      }
+      function s3Next() {
+        if (_sN >= _STEPS.length) {
+          s3Rst();
+          return;
+        }
+        const step = _STEPS[_sN],
+          n = document.getElementById("s3note"),
+          d = document.getElementById("s3det");
+        if (n) n.textContent = step.note;
+        if (step.col === -1) {
+          _W.forEach((_, r) =>
+            _W[0].forEach((_, c) => {
+              const el = document.getElementById(`s3p${r}${c}`);
+              if (el) el.className = "pe-d pe-load";
+            }),
+          );
+          if (d)
+            d.innerHTML = `<span class="gv">✓</span> <span class="mv">12 weights loaded from Weight FIFO. Stationary now.</span>`;
+        } else if (step.col === -2) {
+          _W.forEach((_, r) =>
+            _W[0].forEach((_, c) => {
+              const el = document.getElementById(`s3p${r}${c}`),
+                mel = document.getElementById(`s3m${r}${c}`);
+              if (el) el.className = "pe-d pe-done";
+              if (mel && c === 3) {
+                mel.textContent = `y=${_W[r].reduce((s, w, i) => s + w * _A[i], 0)}`;
+                mel.style.color = "var(--amber)";
+              }
+            }),
+          );
+          if (d)
+            d.innerHTML = `<span class="gv">y = [7, 16, 13]</span><span class="mv"> computed. 256×256 MXU runs 65,536 of these in parallel every cycle.</span>`;
+        } else {
+          const col = step.col;
+          _W.forEach((_, r) => {
+            for (let c = 0; c < 4; c++) {
+              const el = document.getElementById(`s3p${r}${c}`),
+                mel = document.getElementById(`s3m${r}${c}`);
+              if (c < col) {
+                if (el) el.className = "pe-d pe-done";
+                const acc = _W[r]
+                  .slice(0, c + 1)
+                  .reduce((s, w, i) => s + w * _A[i], 0);
+                if (mel) {
+                  mel.textContent = `acc=${acc}`;
+                  mel.style.color = "var(--amber)";
+                }
+              } else if (c === col) {
+                if (el) el.className = "pe-d pe-run";
+                const p = _W[r][c] * _A[c];
+                if (mel) {
+                  mel.textContent = `${_W[r][c]}×${_A[c]}=${p}`;
+                  mel.style.color = "var(--cyan)";
+                }
+              } else {
+                if (el && !el.classList.contains("pe-done"))
+                  el.className = "pe-d pe-load";
+                if (mel && mel.textContent === "·") {
+                  mel.textContent = "ready";
+                  mel.style.color = "var(--green)";
+                }
+              }
+            }
+          });
+          const macs = (col + 1) * 3;
+          if (d)
+            d.innerHTML = `<span class="cv">${macs} MACs</span><span class="mv"> firing this cycle${col === 3 ? ' — <b style="color:var(--green)">FULL THROUGHPUT</b>' : ""}  (×5461 at 256×256 scale)</span>`;
+        }
+        _sN++;
+      }
+      function s3Auto() {
+        const ab = document.getElementById("s3ab");
+        if (_sT) {
+          clearInterval(_sT);
+          _sT = null;
+          if (ab) ab.textContent = "⚡ Auto";
+          return;
+        }
+        if (ab) ab.textContent = "⏸ Pause";
+        _sT = setInterval(() => {
+          if (_sN >= _STEPS.length) {
+            clearInterval(_sT);
+            _sT = null;
+            if (ab) ab.textContent = "⚡ Auto";
+            return;
+          }
+          s3Next();
+        }, 900);
+      }
 
-    // ─── S4: Data path trace ───
-    const _S4TRACE = [
-      { msg: '① Weights: DRAM → Weight FIFO (loaded once, then stationary)', color: '#39ff8a' },
-      { msg: '② Activations: Unified Buffer → MXU left edge', color: '#00e5ff' },
-      { msg: '③ MXU fires: 65,536 × (w × a) in one clock cycle', color: '#00e5ff' },
-      { msg: '④ Partial sums: MXU → Accumulator SRAM (INT32, 4 MB)', color: '#ffb400' },
-      { msg: '⑤ Activation: Accumulator → Act. Pipeline (ReLU / softmax / tanh)', color: '#a78bfa' },
-      { msg: '⑥ Output → back to Unified Buffer → feeds next layer. Zero DRAM trip.', color: '#39ff8a' },
-    ];
-    let _s4T = null, _s4I = 0;
-    function initS4Demo() {
-      const sl = document.getElementById('s4');
-      if (!sl || sl.querySelector('#s4-demo')) return;
-      sl.insertAdjacentHTML('beforeend', `<div class="demo-panel" id="s4-demo" style="padding:8px 14px">
+      // ─── S4: Data path trace ───
+      const _S4TRACE = [
+        {
+          msg: "① Weights: DRAM → Weight FIFO (loaded once, then stationary)",
+          color: "#39ff8a",
+        },
+        {
+          msg: "② Activations: Unified Buffer → MXU left edge",
+          color: "#00e5ff",
+        },
+        {
+          msg: "③ MXU fires: 65,536 × (w × a) in one clock cycle",
+          color: "#00e5ff",
+        },
+        {
+          msg: "④ Partial sums: MXU → Accumulator SRAM (INT32, 4 MB)",
+          color: "#ffb400",
+        },
+        {
+          msg: "⑤ Activation: Accumulator → Act. Pipeline (ReLU / softmax / tanh)",
+          color: "#a78bfa",
+        },
+        {
+          msg: "⑥ Output → back to Unified Buffer → feeds next layer. Zero DRAM trip.",
+          color: "#39ff8a",
+        },
+      ];
+      let _s4T = null,
+        _s4I = 0;
+      function initS4Demo() {
+        const sl = document.getElementById("s4");
+        if (!sl || sl.querySelector("#s4-demo")) return;
+        sl.insertAdjacentHTML(
+          "beforeend",
+          `<div class="demo-panel" id="s4-demo" style="padding:8px 14px">
     <div class="demo-hdr" style="margin-bottom:4px">
       <span class="demo-label">⚡ Trace a MatMul Operation</span>
       <div class="demo-btns">
@@ -2319,23 +3364,46 @@
         <button class="demo-btn dim" onclick="s4Stop()">■</button>
       </div></div>
     <div id="s4info" style="font-family:var(--mono);font-size:11px;color:var(--muted);min-height:20px;transition:color .3s"></div>
-  </div>`);
-    }
-    function s4Trace() {
-      if (_s4T) return; _s4I = 0;
-      _s4T = setInterval(() => {
-        if (_s4I >= _S4TRACE.length) { clearInterval(_s4T); _s4T = null; return; }
-        const t = _S4TRACE[_s4I], el = document.getElementById('s4info');
-        if (el) { el.style.color = t.color; el.textContent = t.msg; } _s4I++;
-      }, 1300);
-    }
-    function s4Stop() { if (_s4T) { clearInterval(_s4T); _s4T = null; } const el = document.getElementById('s4info'); if (el) { el.textContent = ''; } _s4I = 0; }
+  </div>`,
+        );
+      }
+      function s4Trace() {
+        if (_s4T) return;
+        _s4I = 0;
+        _s4T = setInterval(() => {
+          if (_s4I >= _S4TRACE.length) {
+            clearInterval(_s4T);
+            _s4T = null;
+            return;
+          }
+          const t = _S4TRACE[_s4I],
+            el = document.getElementById("s4info");
+          if (el) {
+            el.style.color = t.color;
+            el.textContent = t.msg;
+          }
+          _s4I++;
+        }, 1300);
+      }
+      function s4Stop() {
+        if (_s4T) {
+          clearInterval(_s4T);
+          _s4T = null;
+        }
+        const el = document.getElementById("s4info");
+        if (el) {
+          el.textContent = "";
+        }
+        _s4I = 0;
+      }
 
-    // ─── S7: Performance calculation ───
-    function initS7Demo() {
-      const sl = document.getElementById('s7');
-      if (!sl || sl.querySelector('#s7-demo')) return;
-      sl.insertAdjacentHTML('beforeend', `<div class="demo-panel" id="s7-demo">
+      // ─── S7: Performance calculation ───
+      function initS7Demo() {
+        const sl = document.getElementById("s7");
+        if (!sl || sl.querySelector("#s7-demo")) return;
+        sl.insertAdjacentHTML(
+          "beforeend",
+          `<div class="demo-panel" id="s7-demo">
     <div class="demo-hdr"><span class="demo-label">⚡ Why exactly 83× perf/watt?</span>
       <div class="demo-btns"><button class="demo-btn" onclick="s7Calc()">▶ Calculate</button></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -2353,39 +3421,79 @@
         </div>
       </div>
     </div>
-  </div>`);
-    }
-    function s7Calc() {
-      ['s7r0', 's7r1', 's7r2', 's7r3', 's7r4', 's7r5', 's7r6'].forEach((id, i) => {
-        const el = document.getElementById(id); if (el) setTimeout(() => el.classList.add('vis'), i * 280 + 100);
-      });
-    }
+  </div>`,
+        );
+      }
+      function s7Calc() {
+        ["s7r0", "s7r1", "s7r2", "s7r3", "s7r4", "s7r5", "s7r6"].forEach(
+          (id, i) => {
+            const el = document.getElementById(id);
+            if (el) setTimeout(() => el.classList.add("vis"), i * 280 + 100);
+          },
+        );
+      }
 
-    // ─── S8: impact count-up ───
-    function s8Animate() {
-      [{ s: '#s8 .impact-n.hl', v: '500M+' }, { s: '#s8 .impact-n.hl2', v: '55–85%' }, { s: '#s8 .impact-n.hl3', v: '2×' }, { s: '#s8 .impact-n.hlp', v: '133' }]
-        .forEach(({ s, v }, i) => {
-          const el = document.querySelector(s); if (!el || el._cnt) return; el._cnt = true;
-          el.style.opacity = '0'; setTimeout(() => { el.textContent = v; el.style.transition = 'opacity .6s'; el.style.opacity = '1'; }, i * 200 + 400);
+      // ─── S8: impact count-up ───
+      function s8Animate() {
+        [
+          { s: "#s8 .impact-n.hl", v: "500M+" },
+          { s: "#s8 .impact-n.hl2", v: "55–85%" },
+          { s: "#s8 .impact-n.hl3", v: "2×" },
+          { s: "#s8 .impact-n.hlp", v: "133" },
+        ].forEach(({ s, v }, i) => {
+          const el = document.querySelector(s);
+          if (!el || el._cnt) return;
+          el._cnt = true;
+          el.style.opacity = "0";
+          setTimeout(
+            () => {
+              el.textContent = v;
+              el.style.transition = "opacity .6s";
+              el.style.opacity = "1";
+            },
+            i * 200 + 400,
+          );
         });
-    }
+      }
 
-    // ─── S9: takeaway reveal ───
-    function s9Animate() {
-      document.querySelectorAll('#s9 .takeaway').forEach((el, i) => {
-        el.style.opacity = '0'; el.style.transform = 'translateY(10px)';
-        el.style.transition = `opacity .4s ${i * 150 + 200}ms, transform .4s ${i * 150 + 200}ms`;
-        setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'none'; }, 50);
-      });
-    }
+      // ─── S9: takeaway reveal ───
+      function s9Animate() {
+        document.querySelectorAll("#s9 .takeaway").forEach((el, i) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(10px)";
+          el.style.transition = `opacity .4s ${i * 150 + 200}ms, transform .4s ${i * 150 + 200}ms`;
+          setTimeout(() => {
+            el.style.opacity = "1";
+            el.style.transform = "none";
+          }, 50);
+        });
+      }
 
-    // ─── MutationObserver: fire hooks on slide activate ───
-    const HOOKS = { s0: () => setTimeout(s0Animate, 250), s1: initS1Demo, s3: initS3Demo, s4: initS4Demo, s7: initS7Demo, s8: () => setTimeout(s8Animate, 300), s9: () => setTimeout(s9Animate, 100) };
-    const _obs = new MutationObserver(muts => muts.forEach(({ target }) => { if (target.classList.contains('active') && HOOKS[target.id]) HOOKS[target.id](); }));
-    document.querySelectorAll('.slide').forEach(sl => _obs.observe(sl, { attributes: true, attributeFilter: ['class'] }));
-    // fire for initial slide
-    setTimeout(() => { if (HOOKS.s0) HOOKS.s0(); }, 400);
-  </script>
-</body>
-
+      // ─── MutationObserver: fire hooks on slide activate ───
+      const HOOKS = {
+        s0: () => setTimeout(s0Animate, 250),
+        s1: initS1Demo,
+        s3: initS3Demo,
+        s4: initS4Demo,
+        s7: initS7Demo,
+        s8: () => setTimeout(s8Animate, 300),
+        s9: () => setTimeout(s9Animate, 100),
+      };
+      const _obs = new MutationObserver((muts) =>
+        muts.forEach(({ target }) => {
+          if (target.classList.contains("active") && HOOKS[target.id])
+            HOOKS[target.id]();
+        }),
+      );
+      document
+        .querySelectorAll(".slide")
+        .forEach((sl) =>
+          _obs.observe(sl, { attributes: true, attributeFilter: ["class"] }),
+        );
+      // fire for initial slide
+      setTimeout(() => {
+        if (HOOKS.s0) HOOKS.s0();
+      }, 400);
+    </script>
+  </body>
 </html>
