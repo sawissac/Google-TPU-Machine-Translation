@@ -26,14 +26,29 @@
       --cyan: #00e5ff;
       --green: #39ff8a;
       --amber: #ffb400;
+      --gold: #ffd93d;
       --pink: #ff4daa;
+      --pink2: #ff6b9d;
       --purple: #a78bfa;
+      --purple2: #c084fc;
       --text: #dde7f5;
       --muted: #5a7a9e;
       --border: #1a3050;
+      --border-deep: #1a4060;
+      --border-soft: #1e3a5a;
       --heading: #ffffff;
       --body-text: #8fa8c0;
+      --soft-text: #8aaccc;
+      --soft-text2: #a0bcd8;
       --code-bg: #0a1929;
+      --deep: #020f1a;
+      --deep2: #04080f;
+      --card-deep: #0a1f30;
+      --card-deep2: #061420;
+      --right-bg: #0d3320;
+      --wrong-bg: #2d0a0a;
+      --wrong-fg: #ff6666;
+      --right-fg: #39ff8a;
       --font: 'Space Grotesk', sans-serif;
       --mono: 'JetBrains Mono', monospace;
     }
@@ -46,14 +61,29 @@
       --cyan: #0284c7;
       --green: #15803d;
       --amber: #b45309;
+      --gold: #b45309;
       --pink: #be185d;
+      --pink2: #be185d;
       --purple: #6d28d9;
+      --purple2: #6d28d9;
       --text: #0f172a;
       --muted: #64748b;
       --border: #cbd5e1;
+      --border-deep: #94a3b8;
+      --border-soft: #cbd5e1;
       --heading: #0f172a;
       --body-text: #475569;
+      --soft-text: #475569;
+      --soft-text2: #334155;
       --code-bg: rgba(2, 132, 199, .08);
+      --deep: #eef4fb;
+      --deep2: #e2e8f0;
+      --card-deep: #e2e8f0;
+      --card-deep2: #dbeafe;
+      --right-bg: #dcfce7;
+      --wrong-bg: #fee2e2;
+      --wrong-fg: #b91c1c;
+      --right-fg: #15803d;
     }
 
     .sr-only {
@@ -910,6 +940,128 @@
       .slide h2 {
         font-size: 19px
       }
+
+      /* S4 chip flow: keep desktop layout, horizontal pan */
+      .s4-flow-row {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+        min-height: 300px
+      }
+
+      .s4-flow-row > * {
+        flex-shrink: 0
+      }
+
+      .s4-onchip {
+        flex: 0 0 auto !important;
+        width: max-content !important;
+        min-width: 720px !important
+      }
+
+      .s4-onchip > div[style*="display:flex"] {
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        width: max-content
+      }
+
+      .s4-onchip > div[style*="display:flex"] > * {
+        flex-shrink: 0
+      }
+
+      /* S6 comparison chart: shrink fixed widths */
+      [style*="width:90px"][style*="JetBrains Mono"] {
+        width: 64px !important;
+        font-size: 0.65em !important;
+      }
+
+      [style*="width:110px"][style*="JetBrains Mono"] {
+        width: 78px !important;
+        font-size: 0.6em !important;
+      }
+
+      /* Bar label */
+      .bar-label {
+        width: 50px;
+        font-size: 10px
+      }
+
+      .bar-end {
+        width: 40px;
+        font-size: 10px
+      }
+
+      /* Tab row scrollable */
+      .tab-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch
+      }
+
+      .tab-btn {
+        flex-shrink: 0
+      }
+
+      /* Image panel min-height shrink */
+      .img-panel {
+        min-height: 140px
+      }
+
+      /* Transformer step explanation: 2 cols on mobile */
+      [style*="grid-template-columns:repeat(4,1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important
+      }
+
+      /* Legend wrap */
+      #s4 > div[style*="flex-wrap:wrap"][style*="font-size:11px"] {
+        font-size: 10px !important;
+        gap: 8px !important
+      }
+
+      /* Demo panel grids → single column when tight */
+      .demo-panel [style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important
+      }
+
+      .demo-panel [style*="grid-template-columns:220px 1fr"] {
+        grid-template-columns: 1fr !important
+      }
+
+      /* Pipeline labels in S2 (4-col explanations) */
+      #s2 [style*="grid-template-columns:repeat(4,1fr)"] {
+        grid-template-columns: 1fr 1fr !important
+      }
+
+      /* Topbar buttons compact */
+      .icon-btn,
+      .theme-btn {
+        padding: 4px 6px;
+        font-size: 9px
+      }
+
+      .tb-ctr {
+        font-size: 9px
+      }
+
+      /* Members slide */
+      #s-members .takeaway {
+        gap: 10px !important;
+        padding: 10px !important
+      }
+
+      #s-members .tk-num {
+        font-size: 0.6em !important;
+        min-width: 70px !important
+      }
+
+      /* Quiz buttons wrap */
+      #quiz-wrap [data-qi] {
+        flex: 1 1 100%
+      }
     }
 
     @media (max-width:480px) {
@@ -943,6 +1095,97 @@
       .tl-text,
       .tk-body {
         font-size: 12px
+      }
+
+      .topbar {
+        padding: 6px 10px;
+        gap: 6px
+      }
+
+      .nav {
+        padding: 6px 10px
+      }
+
+      .tb-title {
+        display: none
+      }
+
+      .nav-btn {
+        padding: 6px 12px;
+        font-size: 9px;
+        letter-spacing: 1px
+      }
+
+      /* Even tighter S4 */
+      #s4 .dp-card {
+        padding: 6px 8px
+      }
+
+      .img-panel {
+        min-height: 120px
+      }
+
+      /* Bar comparison: smaller */
+      [style*="width:90px"][style*="JetBrains Mono"] {
+        width: 50px !important;
+        font-size: 0.55em !important
+      }
+
+      [style*="width:110px"][style*="JetBrains Mono"] {
+        width: 60px !important;
+        font-size: 0.5em !important
+      }
+
+      /* Members tk-num shrink */
+      #s-members .tk-num {
+        font-size: 0.55em !important;
+        min-width: 64px !important
+      }
+
+      /* Spec val font shrink */
+      .spec-val {
+        font-size: 9px
+      }
+
+      .spec-label {
+        font-size: 11px
+      }
+
+      /* Tab btn smaller */
+      .tab-btn {
+        font-size: 9px;
+        padding: 5px 10px
+      }
+
+      /* S4 dp-tag font */
+      .dp-tag {
+        font-size: 7px
+      }
+    }
+
+    /* Allow scrolling on very small / landscape mobile if content overflows viewport */
+    @media (max-height:520px) {
+      body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100dvh
+      }
+
+      .pres {
+        height: auto;
+        min-height: 100dvh
+      }
+
+      .area {
+        min-height: 60vh
+      }
+    }
+
+    /* Prevent the QR slide image from blowing past viewport on tiny screens */
+    @media (max-width:480px) {
+      #s-qr img {
+        max-height: 60vh !important;
+        max-width: 86vw !important
       }
     }
 
@@ -1084,7 +1327,7 @@
     }
 
     .calc-box {
-      background: #050c17;
+      background: var(--deep);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 10px 14px;
@@ -1433,23 +1676,23 @@
               <h3>The MAC Operation</h3>
               <p>Every layer computes <code>y = W·x + b</code>. Expanded form:</p>
               <div
-                style="background:#020f1a;border:1px solid #1a4060;border-radius:8px;padding:14px 18px;margin:10px 0;text-align:center">
+                style="background:var(--deep);border:1px solid var(--border-deep);border-radius:8px;padding:14px 18px;margin:10px 0;text-align:center">
                 <div
-                  style="font-size:1.55em;font-family:'JetBrains Mono',monospace;color:#00e5ff;letter-spacing:0.04em;line-height:1.7">
-                  y<sub style="font-size:0.65em">i</sub> = <span style="color:#39ff8a">Σ</span><sub
-                    style="font-size:0.55em;color:#39ff8a">j</sub>
-                  &nbsp;<span style="color:#ffd93d">W</span><sub style="font-size:0.55em;color:#ffd93d">ij</sub>
+                  style="font-size:1.55em;font-family:'JetBrains Mono',monospace;color:var(--cyan);letter-spacing:0.04em;line-height:1.7">
+                  y<sub style="font-size:0.65em">i</sub> = <span style="color:var(--green)">Σ</span><sub
+                    style="font-size:0.55em;color:var(--green)">j</sub>
+                  &nbsp;<span style="color:var(--gold)">W</span><sub style="font-size:0.55em;color:var(--gold)">ij</sub>
                   &nbsp;·&nbsp;
-                  <span style="color:#00e5ff">x</span><sub style="font-size:0.55em">j</sub>
+                  <span style="color:var(--cyan)">x</span><sub style="font-size:0.55em">j</sub>
                   &nbsp;+&nbsp;
-                  <span style="color:#ff6b9d">b</span><sub style="font-size:0.55em;color:#ff6b9d">i</sub>
+                  <span style="color:var(--pink2)">b</span><sub style="font-size:0.55em;color:var(--pink2)">i</sub>
                 </div>
                 <div
-                  style="display:flex;justify-content:center;gap:28px;margin-top:10px;font-size:0.78em;color:#5a7a9e;font-family:'JetBrains Mono',monospace">
-                  <span><span style="color:#ffd93d">W</span><sub style="font-size:0.75em">ij</sub> = weight</span>
-                  <span><span style="color:#00e5ff">x</span><sub style="font-size:0.75em">j</sub> = input</span>
-                  <span><span style="color:#ff6b9d">b</span><sub style="font-size:0.75em">i</sub> = bias</span>
-                  <span><span style="color:#39ff8a">Σ</span> = sum over all j</span>
+                  style="display:flex;justify-content:center;gap:28px;margin-top:10px;font-size:0.78em;color:var(--muted);font-family:'JetBrains Mono',monospace">
+                  <span><span style="color:var(--gold)">W</span><sub style="font-size:0.75em">ij</sub> = weight</span>
+                  <span><span style="color:var(--cyan)">x</span><sub style="font-size:0.75em">j</sub> = input</span>
+                  <span><span style="color:var(--pink2)">b</span><sub style="font-size:0.75em">i</sub> = bias</span>
+                  <span><span style="color:var(--green)">Σ</span> = sum over all j</span>
                 </div>
               </div>
               <p style="margin:6px 0 4px">Each output neuron <code>i</code> multiplies <em>every</em> input
@@ -1497,29 +1740,29 @@
               <!-- Step explanations -->
               <div
                 style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:0.72em;font-family:'JetBrains Mono',monospace">
-                <div style="background:#020f1a;border:1px solid #00e5ff33;border-radius:6px;padding:8px 10px">
-                  <div style="color:#00e5ff;font-weight:700;margin-bottom:4px">① Embedding</div>
-                  <div style="color:#8aaccc;line-height:1.5">Word → number vector. "Cat" becomes <span
-                      style="color:#00e5ff">[0.2, −0.8, 1.4, …]</span>. Every token gets a fixed-size array of floats
+                <div style="background:var(--deep);border:1px solid color-mix(in srgb, var(--cyan) 20%, transparent);border-radius:6px;padding:8px 10px">
+                  <div style="color:var(--cyan);font-weight:700;margin-bottom:4px">① Embedding</div>
+                  <div style="color:var(--soft-text);line-height:1.5">Word → number vector. "Cat" becomes <span
+                      style="color:var(--cyan)">[0.2, −0.8, 1.4, …]</span>. Every token gets a fixed-size array of floats
                     the hardware can process.</div>
                 </div>
-                <div style="background:#020f1a;border:1px solid #39ff8a33;border-radius:6px;padding:8px 10px">
-                  <div style="color:#39ff8a;font-weight:700;margin-bottom:4px">② Attention (Q·K·V)</div>
-                  <div style="color:#8aaccc;line-height:1.5"><span style="color:#ffd93d">Q</span>=Query (what I need),
-                    <span style="color:#ffd93d">K</span>=Key (what others have), <span
-                      style="color:#ffd93d">V</span>=Value (what to pass on). Dot-product Q·Kᵀ scores which tokens to
+                <div style="background:var(--deep);border:1px solid color-mix(in srgb, var(--green) 20%, transparent);border-radius:6px;padding:8px 10px">
+                  <div style="color:var(--green);font-weight:700;margin-bottom:4px">② Attention (Q·K·V)</div>
+                  <div style="color:var(--soft-text);line-height:1.5"><span style="color:var(--gold)">Q</span>=Query (what I need),
+                    <span style="color:var(--gold)">K</span>=Key (what others have), <span
+                      style="color:var(--gold)">V</span>=Value (what to pass on). Dot-product Q·Kᵀ scores which tokens to
                     focus on. All = matrix multiply on TPU.
                   </div>
                 </div>
-                <div style="background:#020f1a;border:1px solid #39ff8a33;border-radius:6px;padding:8px 10px">
-                  <div style="color:#39ff8a;font-weight:700;margin-bottom:4px">③ Feed-Forward (FFN)</div>
-                  <div style="color:#8aaccc;line-height:1.5">Two dense layers: <span
-                      style="color:#ffd93d">W₂·ReLU(W₁·x)</span>. Adds non-linearity so model learns complex patterns.
+                <div style="background:var(--deep);border:1px solid color-mix(in srgb, var(--green) 20%, transparent);border-radius:6px;padding:8px 10px">
+                  <div style="color:var(--green);font-weight:700;margin-bottom:4px">③ Feed-Forward (FFN)</div>
+                  <div style="color:var(--soft-text);line-height:1.5">Two dense layers: <span
+                      style="color:var(--gold)">W₂·ReLU(W₁·x)</span>. Adds non-linearity so model learns complex patterns.
                     Biggest MAC count in the block — ~⅔ of all compute.</div>
                 </div>
-                <div style="background:#020f1a;border:1px solid #5a7a9e33;border-radius:6px;padding:8px 10px">
-                  <div style="color:#a0bcd8;font-weight:700;margin-bottom:4px">④ Output Proj.</div>
-                  <div style="color:#8aaccc;line-height:1.5">Final linear layer collapses multi-head attention output
+                <div style="background:var(--deep);border:1px solid color-mix(in srgb, var(--muted) 20%, transparent);border-radius:6px;padding:8px 10px">
+                  <div style="color:var(--soft-text2);font-weight:700;margin-bottom:4px">④ Output Proj.</div>
+                  <div style="color:var(--soft-text);line-height:1.5">Final linear layer collapses multi-head attention output
                     back to model dimension. Another W·x — same MAC pattern, same TPU hardware, just different weight
                     matrix.</div>
                 </div>
@@ -1553,58 +1796,58 @@
             </div>
             <div class="diag-wrap" style="margin:0;padding:12px">
               <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:180px">
-                <text x="160" y="14" fill="#5a7a9e" font-size="11" text-anchor="middle" font-family="JetBrains Mono">3×4
+                <text x="160" y="14" fill="var(--muted)" font-size="11" text-anchor="middle" font-family="JetBrains Mono">3×4
                   SYSTOLIC ARRAY (TPU v1 = 256×256)</text>
-                <text x="60" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
+                <text x="60" y="30" fill="var(--cyan)" font-size="10" text-anchor="middle"
                   font-family="JetBrains Mono">a₀↓</text>
-                <text x="120" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
+                <text x="120" y="30" fill="var(--cyan)" font-size="10" text-anchor="middle"
                   font-family="JetBrains Mono">a₁↓</text>
-                <text x="180" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
+                <text x="180" y="30" fill="var(--cyan)" font-size="10" text-anchor="middle"
                   font-family="JetBrains Mono">a₂↓</text>
-                <text x="240" y="30" fill="#00e5ff" font-size="10" text-anchor="middle"
+                <text x="240" y="30" fill="var(--cyan)" font-size="10" text-anchor="middle"
                   font-family="JetBrains Mono">a₃↓</text>
-                <text x="2" y="59" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₀→</text>
-                <text x="2" y="103" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₁→</text>
-                <text x="2" y="147" fill="#39ff8a" font-size="10" font-family="JetBrains Mono">w₂→</text>
-                <rect x="35" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#00e5ff" stroke-width="1.5" />
-                <text x="60" y="59" fill="#00e5ff" font-size="12" text-anchor="middle" font-weight="600"
+                <text x="2" y="59" fill="var(--green)" font-size="10" font-family="JetBrains Mono">w₀→</text>
+                <text x="2" y="103" fill="var(--green)" font-size="10" font-family="JetBrains Mono">w₁→</text>
+                <text x="2" y="147" fill="var(--green)" font-size="10" font-family="JetBrains Mono">w₂→</text>
+                <rect x="35" y="38" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--cyan);stroke-width:1.5" />
+                <text x="60" y="59" fill="var(--cyan)" font-size="12" text-anchor="middle" font-weight="600"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="120" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="95" y="38" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border-deep)" />
+                <text x="120" y="59" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="180" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="155" y="38" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border-deep)" />
+                <text x="180" y="59" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="38" width="50" height="34" rx="4" fill="#061829" stroke="#1a4060" />
-                <text x="240" y="59" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="215" y="38" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border-deep)" />
+                <text x="240" y="59" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="35" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="60" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="35" y="82" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="60" y="103" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="120" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="95" y="82" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="120" y="103" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="180" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="155" y="82" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="180" y="103" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="82" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="240" y="103" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="215" y="82" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="240" y="103" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="35" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="60" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="35" y="126" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="60" y="147" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="95" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="120" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="95" y="126" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="120" y="147" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="155" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="180" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="155" y="126" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="180" y="147" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <rect x="215" y="126" width="50" height="34" rx="4" fill="#061829" stroke="#1a3050" />
-                <text x="240" y="147" fill="#5a7a9e" font-size="12" text-anchor="middle"
+                <rect x="215" y="126" width="50" height="34" rx="4" style="fill:var(--code-bg);stroke:var(--border)" />
+                <text x="240" y="147" fill="var(--muted)" font-size="12" text-anchor="middle"
                   font-family="JetBrains Mono">PE</text>
-                <text x="273" y="59" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₀</text>
-                <text x="273" y="103" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₁</text>
-                <text x="273" y="147" fill="#ffb400" font-size="11" font-family="JetBrains Mono">→ y₂</text>
+                <text x="273" y="59" fill="var(--amber)" font-size="11" font-family="JetBrains Mono">→ y₀</text>
+                <text x="273" y="103" fill="var(--amber)" font-size="11" font-family="JetBrains Mono">→ y₁</text>
+                <text x="273" y="147" fill="var(--amber)" font-size="11" font-family="JetBrains Mono">→ y₂</text>
               </svg>
             </div>
           </div>
@@ -1628,32 +1871,32 @@
         <div
           style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-family:'JetBrains Mono',monospace">
           <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#00e5ff;border-radius:2px"></span> Activation
+              style="display:inline-block;width:28px;height:3px;background:var(--cyan);border-radius:2px"></span> Activation
             data</span>
           <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#39ff8a;border-radius:2px;border-style:dashed;border-width:0 0 2px 0;background:none;border-color:#39ff8a;border-bottom:2px dashed #39ff8a"></span>
+              style="display:inline-block;width:28px;height:3px;background:var(--green);border-radius:2px;border-style:dashed;border-width:0 0 2px 0;background:none;border-color:var(--green);border-bottom:2px dashed var(--green)"></span>
             Weights (preloaded)</span>
           <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#ffb400;border-radius:2px"></span>
+              style="display:inline-block;width:28px;height:3px;background:var(--amber);border-radius:2px"></span>
             Accumulated result</span>
           <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#a78bfa;border-radius:2px"></span> Activation
+              style="display:inline-block;width:28px;height:3px;background:var(--purple);border-radius:2px"></span> Activation
             function</span>
           <span style="display:flex;align-items:center;gap:5px"><span
-              style="display:inline-block;width:28px;height:3px;background:#5a7a9e;border-radius:2px;border-bottom:2px dashed #5a7a9e;border-width:0 0 2px 0;background:none"></span>
+              style="display:inline-block;width:28px;height:3px;background:var(--muted);border-radius:2px;border-bottom:2px dashed var(--muted);border-width:0 0 2px 0;background:none"></span>
             Output loop-back</span>
         </div>
 
         <!-- Main data flow diagram -->
-        <div style="align-items:center;gap:0;width:100%;display: flex;">
+        <div class="s4-flow-row" style="align-items:center;gap:0;width:100%;display: flex;">
 
           <!-- HOST CPU -->
-          <div class="dp-card" style="border-color:#5a7a9e;min-width:88px"
+          <div class="dp-card" style="border-color:var(--muted);min-width:88px"
             title="x86 server CPU that issues instructions to the TPU over PCIe">
-            <div class="dp-icon" style="color:#5a7a9e">🖥️</div>
-            <div class="dp-label" style="color:#8fa8c0">Host CPU</div>
+            <div class="dp-icon" style="color:var(--muted)">🖥️</div>
+            <div class="dp-label" style="color:var(--body-text)">Host CPU</div>
             <div class="dp-sub">x86 server<br>issues ops</div>
-            <div class="dp-tag" style="background:#5a7a9e22;color:#5a7a9e">External</div>
+            <div class="dp-tag" style="background:color-mix(in srgb, var(--muted) 13%, transparent);color:var(--muted)">External</div>
           </div>
 
           <div class="dp-arrow dp-arrow-cyan">
@@ -1663,10 +1906,10 @@
           </div>
 
           <!-- ON-CHIP BOUNDARY -->
-          <div
-            style="flex:1;border:1.5px dashed #1e3a5a;border-radius:12px;padding:12px 8px;background:#06101e;min-width:440px;position:relative">
+          <div class="s4-onchip"
+            style="flex:1;border:1.5px dashed var(--border-soft);border-radius:12px;padding:12px 8px;background:var(--deep);min-width:440px;position:relative">
             <div
-              style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#06101e;padding:0 8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#2a5075;white-space:nowrap;letter-spacing:1px">
+              style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--deep);padding:0 8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--muted);white-space:nowrap;letter-spacing:1px">
               ── ON CHIP ──</div>
 
             <div style="display:flex;align-items:center;gap:0">
@@ -1674,24 +1917,24 @@
               <!-- LEFT BUFFERS COLUMN -->
               <div style="display:flex;flex-direction:column;gap:6px;min-width:90px">
 
-                <div class="dp-card" style="border-color:#39ff8a;padding:8px 10px"
+                <div class="dp-card" style="border-color:var(--green);padding:8px 10px"
                   title="Weights are preloaded from DRAM into this FIFO queue before computation starts, so the MXU never waits for weights">
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Weight</div>
-                  <div class="dp-label" style="color:#39ff8a;font-size:11px">FIFO</div>
+                  <div class="dp-label" style="color:var(--muted);font-size:10px">Weight</div>
+                  <div class="dp-label" style="color:var(--green);font-size:11px">FIFO</div>
                   <div class="dp-sub">preloaded<br>from DRAM</div>
                 </div>
 
-                <div class="dp-card" style="border-color:#00e5ff;padding:8px 10px;position:relative"
+                <div class="dp-card" style="border-color:var(--cyan);padding:8px 10px;position:relative"
                   title="28 MB on-chip SRAM. Stores all layer activations so computation never has to wait on slow DRAM">
-                  <div class="dp-label" style="color:#00e5ff">Unified Buffer</div>
-                  <div class="dp-sub" style="color:#5a7a9e">28 MB SRAM</div>
-                  <div class="dp-tag" style="background:#00e5ff22;color:#00e5ff">No DRAM penalty</div>
+                  <div class="dp-label" style="color:var(--cyan)">Unified Buffer</div>
+                  <div class="dp-sub" style="color:var(--muted)">28 MB SRAM</div>
+                  <div class="dp-tag" style="background:color-mix(in srgb, var(--cyan) 13%, transparent);color:var(--cyan)">No DRAM penalty</div>
                 </div>
 
-                <div class="dp-card" style="border-color:#2a5075;padding:8px 10px"
+                <div class="dp-card" style="border-color:var(--muted);padding:8px 10px"
                   title="Holds decoded CISC macro-instructions. One MatMul op fires 65,536 MACs with no CPU overhead">
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Instr.</div>
-                  <div class="dp-label" style="color:#5a7a9e;font-size:10px">Buffer</div>
+                  <div class="dp-label" style="color:var(--muted);font-size:10px">Instr.</div>
+                  <div class="dp-label" style="color:var(--muted);font-size:10px">Buffer</div>
                   <div class="dp-sub">CISC ops</div>
                 </div>
 
@@ -1699,50 +1942,50 @@
 
               <!-- ARROW: Buffer → MXU -->
               <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 4px">
-                <div style="font-size:9px;color:#39ff8a;font-family:'JetBrains Mono',monospace;white-space:nowrap">
+                <div style="font-size:9px;color:var(--green);font-family:'JetBrains Mono',monospace;white-space:nowrap">
                   weights ↘</div>
-                <div style="font-size:18px;color:#00e5ff">→</div>
-                <div style="font-size:9px;color:#00e5ff;font-family:'JetBrains Mono',monospace;white-space:nowrap">
+                <div style="font-size:18px;color:var(--cyan)">→</div>
+                <div style="font-size:9px;color:var(--cyan);font-family:'JetBrains Mono',monospace;white-space:nowrap">
                   activations →</div>
               </div>
 
               <!-- MXU -->
               <div class="dp-card"
-                style="border-color:#00e5ff;border-width:2px;min-width:100px;padding:14px 10px;position:relative;background:linear-gradient(135deg,#061420,#0a1f30)"
+                style="border-color:var(--cyan);border-width:2px;min-width:100px;padding:14px 10px;position:relative;background:linear-gradient(135deg,var(--card-deep2),var(--card-deep))"
                 title="Matrix Multiply Unit — the heart of the TPU. 256×256 grid of multiply-accumulate units, all firing in parallel every clock cycle using a systolic array design">
                 <div
-                  style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#00e5ff;color:#001020;font-size:8px;font-family:'JetBrains Mono',monospace;padding:1px 6px;border-radius:3px;white-space:nowrap">
+                  style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--cyan);color:var(--bg);font-size:8px;font-family:'JetBrains Mono',monospace;padding:1px 6px;border-radius:3px;white-space:nowrap">
                   CORE ENGINE</div>
                 <div
-                  style="font-size:22px;font-weight:700;color:#00e5ff;font-family:'JetBrains Mono',monospace;text-align:center">
+                  style="font-size:22px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;text-align:center">
                   MXU</div>
-                <div style="font-size:10px;color:#8fa8c0;text-align:center;font-family:'JetBrains Mono',monospace">256 ×
+                <div style="font-size:10px;color:var(--body-text);text-align:center;font-family:'JetBrains Mono',monospace">256 ×
                   256</div>
                 <div
-                  style="font-size:10px;color:#39ff8a;text-align:center;font-family:'JetBrains Mono',monospace;margin-top:2px">
+                  style="font-size:10px;color:var(--green);text-align:center;font-family:'JetBrains Mono',monospace;margin-top:2px">
                   65,536 MAC/clk</div>
-                <div class="dp-tag" style="background:#39ff8a22;color:#39ff8a;margin-top:6px">Systolic Array</div>
+                <div class="dp-tag" style="background:color-mix(in srgb, var(--green) 13%, transparent);color:var(--green);margin-top:6px">Systolic Array</div>
               </div>
 
               <!-- ARROW: MXU → Accum -->
-              <div style="font-size:18px;color:#ffb400;padding:0 4px">→</div>
+              <div style="font-size:18px;color:var(--amber);padding:0 4px">→</div>
 
               <!-- ACCUM -->
-              <div class="dp-card" style="border-color:#ffb400;padding:8px 10px"
+              <div class="dp-card" style="border-color:var(--amber);padding:8px 10px"
                 title="4 MB of INT32 accumulator SRAM. Sums up the partial products from each MXU column before passing them on">
-                <div class="dp-label" style="color:#ffb400">Accum.</div>
+                <div class="dp-label" style="color:var(--amber)">Accum.</div>
                 <div class="dp-sub">4 MB<br>INT32</div>
-                <div class="dp-tag" style="background:#ffb40022;color:#ffb400">Σ sums</div>
+                <div class="dp-tag" style="background:color-mix(in srgb, var(--amber) 13%, transparent);color:var(--amber)">Σ sums</div>
               </div>
 
               <!-- ARROW: Accum → Act -->
-              <div style="font-size:18px;color:#a78bfa;padding:0 4px">→</div>
+              <div style="font-size:18px;color:var(--purple);padding:0 4px">→</div>
 
               <!-- ACTIVATION PIPE -->
-              <div class="dp-card" style="border-color:#a78bfa;padding:8px 10px"
+              <div class="dp-card" style="border-color:var(--purple);padding:8px 10px"
                 title="Applies non-linear activation functions (ReLU, sigmoid, etc.) to the accumulated INT32 values and converts back to INT8">
-                <div class="dp-label" style="color:#a78bfa">Act.</div>
-                <div class="dp-label" style="color:#a78bfa">Pipe</div>
+                <div class="dp-label" style="color:var(--purple)">Act.</div>
+                <div class="dp-label" style="color:var(--purple)">Pipe</div>
                 <div class="dp-sub">ReLU / sigmoid<br>→ INT8</div>
               </div>
 
@@ -1750,23 +1993,23 @@
 
             <!-- Loop-back arrow -->
             <div
-              style="margin-top:8px;padding:6px 8px;border:1px dashed #1e3a5a;border-radius:6px;display:flex;align-items:center;gap:8px;background:#04080f">
-              <span style="font-size:9px;color:#5a7a9e;font-family:'JetBrains Mono',monospace">↩ output → Unified Buffer
-                → fed as input for <strong style="color:#00e5ff">next layer</strong></span>
+              style="margin-top:8px;padding:6px 8px;border:1px dashed var(--border-soft);border-radius:6px;display:flex;align-items:center;gap:8px;background:var(--deep2)">
+              <span style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace">↩ output → Unified Buffer
+                → fed as input for <strong style="color:var(--cyan)">next layer</strong></span>
             </div>
           </div>
 
           <!-- DRAM (off to the side) -->
           <div style="display:flex;flex-direction:column;align-items:center;margin-left:8px">
-            <div class="dp-card" style="border-color:#2a5075;min-width:72px;padding:8px 10px"
+            <div class="dp-card" style="border-color:var(--muted);min-width:72px;padding:8px 10px"
               title="8 GB off-chip DDR DRAM at 34 GB/s. Weights are pre-streamed into the Weight FIFO before computation. The TPU tries to never access DRAM during computation">
-              <div class="dp-icon" style="font-size:14px;color:#5a7a9e">💾</div>
-              <div class="dp-label" style="color:#5a7a9e">DRAM</div>
+              <div class="dp-icon" style="font-size:14px;color:var(--muted)">💾</div>
+              <div class="dp-label" style="color:var(--muted)">DRAM</div>
               <div class="dp-sub">8 GB<br>34 GB/s</div>
-              <div class="dp-tag" style="background:#1e3a5a44;color:#5a7a9e">Off-chip</div>
+              <div class="dp-tag" style="background:var(--border-soft)44;color:var(--muted)">Off-chip</div>
             </div>
             <div
-              style="font-size:9px;color:#2a5075;font-family:'JetBrains Mono',monospace;margin-top:4px;text-align:center">
+              style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:4px;text-align:center">
               weights<br>preloaded ↑</div>
           </div>
 
@@ -1774,23 +2017,23 @@
 
         <!-- Bottom annotation cards -->
         <div class="two-col" style="margin-top:12px;gap:8px">
-          <div class="prose-card" style="border-color:#00e5ff">
-            <h3 style="color:#00e5ff">① Unified Buffer — No DRAM Stalls</h3>
+          <div class="prose-card" style="border-color:var(--cyan)">
+            <h3 style="color:var(--cyan)">① Unified Buffer — No DRAM Stalls</h3>
             <p>28 MB on-chip SRAM stores <em>all</em> layer activations. While the MXU computes, data never leaves the
               chip. DRAM is only accessed <em>between</em> layers.</p>
           </div>
-          <div class="prose-card" style="border-color:#39ff8a">
-            <h3 style="color:#39ff8a">② Systolic Array — Data Flows Like Waves</h3>
+          <div class="prose-card" style="border-color:var(--green)">
+            <h3 style="color:var(--green)">② Systolic Array — Data Flows Like Waves</h3>
             <p>Each PE (processing element) multiplies and passes its result to the next — like dominoes. <span
                 class="hl">No memory reads</span> between steps. Maximally efficient at 65,536 ops/cycle.</p>
           </div>
-          <div class="prose-card" style="border-color:#ffb400">
-            <h3 style="color:#ffb400">③ CISC ISA — One Instruction, Millions of Ops</h3>
+          <div class="prose-card" style="border-color:var(--amber)">
+            <h3 style="color:var(--amber)">③ CISC ISA — One Instruction, Millions of Ops</h3>
             <p>A single <code>MatMul</code> macro-instruction fires <span class="hl3">all 65,536 MACs</span> in
               parallel. The CPU issues very few instructions. Minimal control overhead.</p>
           </div>
-          <div class="prose-card" style="border-color:#a78bfa">
-            <h3 style="color:#a78bfa">④ Activation Pipe — INT8 Output</h3>
+          <div class="prose-card" style="border-color:var(--purple)">
+            <h3 style="color:var(--purple)">④ Activation Pipe — INT8 Output</h3>
             <p>After accumulation in INT32, the activation pipeline applies the non-linearity and requantizes back to
               <span class="hl2">INT8</span> for the next layer — keeping everything tight and fast.
             </p>
@@ -1799,10 +2042,10 @@
 
         <style>
           .dp-card {
-            border: 1px solid #1e3a5a;
+            border: 1px solid var(--border-soft);
             border-radius: 8px;
             padding: 10px 12px;
-            background: #0a1929;
+            background: var(--code-bg);
             display: flex;
             flex-direction: column;
             gap: 3px;
@@ -1828,7 +2071,7 @@
 
           .dp-sub {
             font-size: 9px;
-            color: #5a7a9e;
+            color: var(--muted);
             font-family: 'JetBrains Mono', monospace;
             line-height: 1.4;
           }
@@ -1852,18 +2095,18 @@
           .dp-arrow-cyan .dp-arrow-line {
             width: 24px;
             height: 2px;
-            background: #00e5ff;
+            background: var(--cyan);
           }
 
           .dp-arrow-cyan .dp-arrow-head {
-            color: #00e5ff;
+            color: var(--cyan);
             font-size: 14px;
             margin-left: -2px;
           }
 
           .dp-arrow-cyan .dp-arrow-label {
             font-size: 8px;
-            color: #2a5075;
+            color: var(--muted);
             font-family: 'JetBrains Mono', monospace;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
@@ -1980,7 +2223,7 @@
           <button class="tab-btn" onclick="switchTab('gen','v4',this)">v4 · 2021</button>
           <button class="tab-btn" onclick="switchTab('gen','v5e',this)">v5e · 2023</button>
           <button class="tab-btn" onclick="switchTab('gen','trillium',this)"
-            style="color:#ffd93d;border-color:#ffd93d66">Trillium · 2024</button>
+            style="color:var(--gold);border-color:var(--gold)66">Trillium · 2024</button>
         </div>
         <div id="gen-v1" class="tab-panel on">
           <div class="two-col" style="gap:8px;margin:0">
@@ -2081,126 +2324,126 @@
             <div class="prose-card">
               <h3>Trillium (v6e) Specs</h3>
               <ul>
-                <li>Compute: <span style="color:#ffd93d" class="hl">4.7× v5e</span> per chip</li>
-                <li>Memory BW: <span style="color:#ffd93d" class="hl">2× v5e</span></li>
-                <li>Energy efficiency: <span style="color:#ffd93d" class="hl">3× v5e</span></li>
-                <li>Precision: BF16, INT8, <span style="color:#ffd93d">FP8</span>, INT4</li>
-                <li>ICI: <span style="color:#ffd93d">2× bandwidth</span> for larger pods</li>
+                <li>Compute: <span style="color:var(--gold)" class="hl">4.7× v5e</span> per chip</li>
+                <li>Memory BW: <span style="color:var(--gold)" class="hl">2× v5e</span></li>
+                <li>Energy efficiency: <span style="color:var(--gold)" class="hl">3× v5e</span></li>
+                <li>Precision: BF16, INT8, <span style="color:var(--gold)">FP8</span>, INT4</li>
+                <li>ICI: <span style="color:var(--gold)">2× bandwidth</span> for larger pods</li>
               </ul>
             </div>
             <div class="prose-card">
               <h3>Gemini Era</h3>
               <p>Trillium is Google's 6th-gen TPU, announced at Google Cloud Next 2024. Built for <span
-                  style="color:#ffd93d">Gemini-scale</span> multimodal training. INT4 support cuts memory 8× vs FP32 —
-                critical for fitting trillion-parameter models in a pod. <span style="color:#ffd93d">3× energy
+                  style="color:var(--gold)">Gemini-scale</span> multimodal training. INT4 support cuts memory 8× vs FP32 —
+                critical for fitting trillion-parameter models in a pod. <span style="color:var(--gold)">3× energy
                   gain</span> directly reduces cost-per-token, making frontier inference economically viable at Google
                 scale.</p>
             </div>
           </div>
         </div>
         <!-- Comparison chart -->
-        <div style="background:#020f1a;border:1px solid #1a4060;border-radius:8px;padding:14px 16px;margin-top:8px">
+        <div style="background:var(--deep);border:1px solid var(--border-deep);border-radius:8px;padding:14px 16px;margin-top:8px">
           <div
-            style="font-size:0.72em;color:#5a7a9e;font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.05em">
+            style="font-size:0.72em;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.05em">
             CHIP COMPUTE — RELATIVE TO v1 (v1 = 1×, BF16 / INT8 peak)</div>
 
           <!-- v1 -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#00e5ff;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--cyan);flex-shrink:0">
               v1 · 2015</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:9%;background:#00e5ff;height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
+                style="width:9%;background:var(--cyan);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">1×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">1×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#5a7a9e;flex-shrink:0">92
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0">92
               TOPS INT8</div>
           </div>
 
           <!-- v2 -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#39ff8a;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--green);flex-shrink:0">
               v2 · 2017</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:18%;background:#39ff8a;height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
+                style="width:18%;background:var(--green);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">2×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">2×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#5a7a9e;flex-shrink:0">
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0">
               180 TFLOPS BF16</div>
           </div>
 
           <!-- v3 -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#39ff8a;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--green);flex-shrink:0">
               v3 · 2018</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:42%;background:#39ff8a;height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
+                style="width:42%;background:var(--green);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">4.6×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">4.6×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#5a7a9e;flex-shrink:0">
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0">
               420 TFLOPS BF16</div>
           </div>
 
           <!-- v4 -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#c084fc;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--purple2);flex-shrink:0">
               v4 · 2021</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:27%;background:#c084fc;height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
+                style="width:27%;background:var(--purple2);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">3×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">3×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#5a7a9e;flex-shrink:0">
-              275 TFLOPS BF16 <span style="color:#c084fc">↑pod×16</span></div>
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0">
+              275 TFLOPS BF16 <span style="color:var(--purple2)">↑pod×16</span></div>
           </div>
 
           <!-- v5e -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#00e5ff;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--cyan);flex-shrink:0">
               v5e · 2023</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:39%;background:linear-gradient(90deg,#00e5ff,#39ff8a);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
+                style="width:39%;background:linear-gradient(90deg,var(--cyan),var(--green));height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">4.3×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">4.3×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#5a7a9e;flex-shrink:0">
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--muted);flex-shrink:0">
               394 TFLOPS FP8</div>
           </div>
 
           <!-- Trillium -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:#ffd93d;flex-shrink:0">
+            <div style="width:90px;font-size:0.75em;font-family:'JetBrains Mono',monospace;color:var(--gold);flex-shrink:0">
               Trillium '24</div>
-            <div style="flex:1;background:#0a1f30;border-radius:3px;height:22px;position:relative">
+            <div style="flex:1;background:var(--card-deep);border-radius:3px;height:22px;position:relative">
               <div
-                style="width:92%;background:linear-gradient(90deg,#ffd93d,#ff6b9d);height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px">
+                style="width:92%;background:linear-gradient(90deg,var(--gold),var(--pink2));height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px">
                 <span
-                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:#020f1a;font-weight:700">~10×</span>
+                  style="font-size:0.7em;font-family:'JetBrains Mono',monospace;color:var(--deep);font-weight:700">~10×</span>
               </div>
             </div>
             <div
-              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:#ffd93d;flex-shrink:0">
+              style="width:110px;font-size:0.68em;font-family:'JetBrains Mono',monospace;color:var(--gold);flex-shrink:0">
               ~925 TFLOPS BF16</div>
           </div>
 
-          <div style="margin-top:8px;font-size:0.65em;color:#334155;font-family:'JetBrains Mono',monospace">
+          <div style="margin-top:8px;font-size:0.65em;color:var(--soft-text2);font-family:'JetBrains Mono',monospace">
             * v4 per-chip lower than v3 — offset by 4,096-chip pods (16× larger). v5e FP8 shown for fair LLM inference
             comparison. Trillium estimated from Google's 4.7× v5e claim.
           </div>
@@ -2222,17 +2465,17 @@
               2017</p>
             <div class="bar-row"><span class="bar-label" style="color:var(--muted)">CPU</span>
               <div class="bar-track">
-                <div class="bar-fill" style="width:1.2%;background:#334155;color:var(--muted)">1×</div>
+                <div class="bar-fill" style="width:1.2%;background:var(--soft-text2);color:var(--muted)">1×</div>
               </div><span class="bar-end" style="color:var(--muted)">baseline</span>
             </div>
             <div class="bar-row"><span class="bar-label" style="color:var(--amber)">GPU K80</span>
               <div class="bar-track">
-                <div class="bar-fill" id="b1" style="width:1%;background:#78350f;color:var(--amber)"></div>
+                <div class="bar-fill" id="b1" style="width:1%;background:color-mix(in srgb,var(--amber) 30%,var(--s3));color:var(--heading)"></div>
               </div><span class="bar-end" style="color:var(--amber)">41×</span>
             </div>
             <div class="bar-row"><span class="bar-label" style="color:var(--cyan)">TPU v1</span>
               <div class="bar-track">
-                <div class="bar-fill" id="b2" style="width:1%;background:#0c4a6e;color:var(--cyan)"></div>
+                <div class="bar-fill" id="b2" style="width:1%;background:color-mix(in srgb,var(--cyan) 35%,var(--s3));color:var(--heading)"></div>
               </div><span class="bar-end" style="color:var(--cyan)">83×</span>
             </div>
             <div class="two-col" style="margin-top:10px;gap:8px">
@@ -2374,14 +2617,14 @@
           <!-- QUIZ -->
           <div style="margin-top:12px">
             <div
-              style="font-size:0.72em;color:#5a7a9e;font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.05em">
+              style="font-size:0.72em;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.05em">
               QUICK QUIZ — click an answer</div>
             <div id="quiz-wrap" style="display:flex;flex-direction:column;gap:10px"></div>
             <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
               <button onclick="resetQuiz()"
-                style="background:#0a1f30;border:1px solid #1a4060;color:#5a7a9e;font-family:'JetBrains Mono',monospace;font-size:0.72em;padding:5px 14px;border-radius:5px;cursor:pointer">↺
+                style="background:var(--card-deep);border:1px solid var(--border-deep);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.72em;padding:5px 14px;border-radius:5px;cursor:pointer">↺
                 Reset</button>
-              <div id="quiz-score" style="font-size:0.72em;font-family:'JetBrains Mono',monospace;color:#5a7a9e"></div>
+              <div id="quiz-score" style="font-size:0.72em;font-family:'JetBrains Mono',monospace;color:var(--muted)"></div>
             </div>
           </div>
         </div>
@@ -2475,11 +2718,11 @@
       quizState = {};
       QUIZ.forEach((q, qi) => {
         const card = document.createElement('div');
-        card.style.cssText = 'background:#020f1a;border:1px solid #1a4060;border-radius:7px;padding:10px 12px';
-        card.innerHTML = `<div style="font-size:0.78em;font-family:'JetBrains Mono',monospace;color:#a0bcd8;margin-bottom:8px"><span style="color:#5a7a9e">Q${qi + 1}.</span> ${q.q}</div>
+        card.style.cssText = 'background:var(--deep);border:1px solid var(--border-deep);border-radius:7px;padding:10px 12px';
+        card.innerHTML = `<div style="font-size:0.78em;font-family:'JetBrains Mono',monospace;color:var(--soft-text2);margin-bottom:8px"><span style="color:var(--muted)">Q${qi + 1}.</span> ${q.q}</div>
           <div style="display:flex;gap:7px;flex-wrap:wrap">
             ${q.opts.map((o, oi) => `<button onclick="pickAnswer(${qi},${oi},this)" data-qi="${qi}" data-oi="${oi}"
-              style="background:#0a1f30;border:1px solid #1a4060;color:#8aaccc;font-family:'JetBrains Mono',monospace;font-size:0.7em;padding:5px 11px;border-radius:5px;cursor:pointer;transition:all 0.2s">
+              style="background:var(--card-deep);border:1px solid var(--border-deep);color:var(--soft-text);font-family:'JetBrains Mono',monospace;font-size:0.7em;padding:5px 11px;border-radius:5px;cursor:pointer;transition:all 0.2s">
               ${String.fromCharCode(65 + oi)}) ${o}</button>`).join('')}
           </div>`;
         wrap.appendChild(card);
@@ -2492,9 +2735,9 @@
       const correct = QUIZ[qi].ans === oi;
       document.querySelectorAll(`[data-qi="${qi}"]`).forEach(b => {
         const isCorrect = parseInt(b.dataset.oi) === QUIZ[qi].ans;
-        b.style.background = isCorrect ? '#0d3320' : (b === btn && !correct ? '#2d0a0a' : '#0a1f30');
-        b.style.borderColor = isCorrect ? '#39ff8a' : (b === btn && !correct ? '#ff4444' : '#1a4060');
-        b.style.color = isCorrect ? '#39ff8a' : (b === btn && !correct ? '#ff6666' : '#334155');
+        b.style.background = isCorrect ? 'var(--right-bg)' : (b === btn && !correct ? 'var(--wrong-bg)' : 'var(--card-deep)');
+        b.style.borderColor = isCorrect ? 'var(--green)' : (b === btn && !correct ? 'var(--wrong-fg)' : 'var(--border-deep)');
+        b.style.color = isCorrect ? 'var(--green)' : (b === btn && !correct ? 'var(--wrong-fg)' : 'var(--soft-text2)');
       });
       const answered = Object.keys(quizState).length;
       const score = Object.entries(quizState).filter(([q, a]) => QUIZ[q].ans === a).length;
@@ -2700,12 +2943,12 @@
 
     // ─── S4: Data path trace ───
     const _S4TRACE = [
-      { msg: '① Weights: DRAM → Weight FIFO (loaded once, then stationary)', color: '#39ff8a' },
-      { msg: '② Activations: Unified Buffer → MXU left edge', color: '#00e5ff' },
-      { msg: '③ MXU fires: 65,536 × (w × a) in one clock cycle', color: '#00e5ff' },
-      { msg: '④ Partial sums: MXU → Accumulator SRAM (INT32, 4 MB)', color: '#ffb400' },
-      { msg: '⑤ Activation: Accumulator → Act. Pipeline (ReLU / softmax / tanh)', color: '#a78bfa' },
-      { msg: '⑥ Output → back to Unified Buffer → feeds next layer. Zero DRAM trip.', color: '#39ff8a' },
+      { msg: '① Weights: DRAM → Weight FIFO (loaded once, then stationary)', color: 'var(--green)' },
+      { msg: '② Activations: Unified Buffer → MXU left edge', color: 'var(--cyan)' },
+      { msg: '③ MXU fires: 65,536 × (w × a) in one clock cycle', color: 'var(--cyan)' },
+      { msg: '④ Partial sums: MXU → Accumulator SRAM (INT32, 4 MB)', color: 'var(--amber)' },
+      { msg: '⑤ Activation: Accumulator → Act. Pipeline (ReLU / softmax / tanh)', color: 'var(--purple)' },
+      { msg: '⑥ Output → back to Unified Buffer → feeds next layer. Zero DRAM trip.', color: 'var(--green)' },
     ];
     let _s4T = null, _s4I = 0;
     function initS4Demo() {
